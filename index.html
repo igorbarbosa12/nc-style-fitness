@@ -23,7 +23,11 @@
 
 <a class="pular" href="#conteudo">Pular para o conteúdo</a>
 
-<div class="avisos" aria-live="polite"><span id="aviso">Faça seu pedido direto pelo WhatsApp</span></div>
+<div class="avisos">
+  <button class="aviso-seta" id="avisoAnt" aria-label="Aviso anterior">‹</button>
+  <span id="aviso">Faça seu pedido direto pelo WhatsApp</span>
+  <button class="aviso-seta" id="avisoProx" aria-label="Próximo aviso">›</button>
+</div>
 
 <header class="topo" id="topo">
   <div class="topo-in">
@@ -270,6 +274,22 @@
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastTxt">Adicionado à sacola</span><button id="toastVer">Ver sacola</button></div>
 <div class="veu" id="veu"></div>
+
+<!-- ADICIONAR RÁPIDO (sacolinha do cartão) -->
+<div class="folha" id="folhaRapida" role="dialog" aria-modal="true" aria-labelledby="rNome">
+  <div class="alca"></div>
+  <button class="fechar" data-fechar aria-label="Fechar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div class="rapida-topo">
+    <div class="rapida-foto" id="rFoto"></div>
+    <div><h2 id="rNome"></h2><div class="rapida-preco" id="rPreco"></div></div>
+  </div>
+  <div class="grupo"><div class="rotulo">Cor: <b id="rCorNome"></b></div><div class="opcoes" id="rCores"></div></div>
+  <div class="grupo"><div class="rotulo" id="rTamRotulo">Tamanho</div><div class="opcoes" id="rTams"></div><p class="nota-tam" id="rTamNota"></p></div>
+  <p class="aviso" id="rAviso" role="alert"></p>
+  <button class="btn cheio" id="rAdicionar">Adicionar à sacola</button>
+  <a class="rapida-ver" id="rVer" href="#">Ver detalhes da peça</a>
+</div>
 
 <!-- SACOLA -->
 <div class="folha" id="folhaSacola" role="dialog" aria-modal="true" aria-labelledby="sTitulo">

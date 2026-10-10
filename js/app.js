@@ -47,6 +47,7 @@ const esgotado = (p,cor,tam) => (p.esgotado||[]).includes(cor+"|"+tam);
 const grupoDe = p => GRUPOS[p.grupo] ? p.grupo : Object.keys(GRUPOS).find(k => GRUPOS[k].cats.includes(p.cat));
 
 /* ---------- card de produto ---------- */
+const ICONE_SACOLA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>`;
 function seloDe(p){
   const off = p.precoAntigo ? Math.round((1 - p.preco/p.precoAntigo)*100) : 0;
   if(p.semEstoque) return `<span class="selo escuro">Esgotado</span>`;
@@ -59,12 +60,16 @@ function cardHTML(p){
   const c0 = p.cores[0], fotos = fotosDaCor(p, c0[0]);
   const capa = fotos[0] ? foto(fotos[0], p.nome) + (fotos[1] ? foto(fotos[1], "", "alt") : "") : desenho(p, c0[1]);
   const nomes = p.cores.map(c => c[0]).join(", ");
-  return `<a class="card${p.semEstoque ? " esgotado" : ""}" href="#p/${p.id}">
-    <div class="foto"${fotos[0] ? "" : ` style="background:${esc(tinta(c0[1]))}"`}>${seloDe(p)}${capa}</div>
-    <span class="nome">${esc(p.nome)}</span>
-    <span class="precos">${p.precoAntigo ? `<s>${reais(p.precoAntigo)}</s>` : ""}${p.precos ? "<small>a partir de</small>" : ""}<span class="preco">${reais(menorPreco(p))}</span></span>
-    <span class="cores" role="img" aria-label="${p.cores.length > 1 ? "Cores" : "Cor"}: ${esc(nomes)}">${p.cores.map(c => `<i style="background:${esc(bolinha(c[1]))}"></i>`).join("")}</span>
-  </a>`;
+  const sacolinha = p.semEstoque ? "" :
+    `<div class="card-acoes"><button class="card-add" data-add="${p.id}" aria-label="Adicionar ${esc(p.nome)} à sacola">${ICONE_SACOLA}</button></div>`;
+  return `<div class="card${p.semEstoque ? " esgotado" : ""}">
+    <a class="card-link" href="#p/${p.id}">
+      <div class="foto"${fotos[0] ? "" : ` style="background:${esc(tinta(c0[1]))}"`}>${seloDe(p)}${capa}</div>
+      <span class="nome">${esc(p.nome)}</span>
+      <span class="precos">${p.precoAntigo ? `<s>${reais(p.precoAntigo)}</s>` : ""}${p.precos ? "<small>a partir de</small>" : ""}<span class="preco">${reais(menorPreco(p))}</span></span>
+      <span class="cores" role="img" aria-label="${p.cores.length > 1 ? "Cores" : "Cor"}: ${esc(nomes)}">${p.cores.map(c => `<i style="background:${esc(bolinha(c[1]))}"></i>`).join("")}</span>
+    </a>${sacolinha}
+  </div>`;
 }
 const esqueletos = n => Array(n).fill(`<div class="card esqueleto" aria-hidden="true"><div class="foto"></div><span class="nome"></span><span class="preco"></span></div>`).join("");
 
@@ -75,12 +80,17 @@ document.addEventListener("error", marcaFoto, true);
 function varrerFotos(){ $$("img.fade:not(.ok)").forEach(i => { if(i.complete) i.classList.add("ok"); }); }
 
 /* ---------- faixa de avisos ---------- */
-let iAviso = 1;
-function trocaAviso(){
+let iAviso = 0, tAviso;
+function mostraAviso(d){
+  iAviso = (iAviso + d + AVISOS.length) % AVISOS.length;
   const el = $("#aviso"); el.style.opacity = 0;
-  setTimeout(() => { el.textContent = AVISOS[iAviso++ % AVISOS.length]; el.style.opacity = 1; }, reduz ? 0 : 350);
+  setTimeout(() => { el.textContent = AVISOS[iAviso]; el.style.opacity = 1; }, reduz ? 0 : 300);
 }
-if(AVISOS.length){ $("#aviso").textContent = AVISOS[0]; if(AVISOS.length > 1) setInterval(trocaAviso, 4500); }
+function rodaAvisos(){ clearInterval(tAviso); if(AVISOS.length > 1) tAviso = setInterval(() => mostraAviso(1), 5000); }
+if(AVISOS.length){ $("#aviso").textContent = AVISOS[0]; rodaAvisos(); }
+$("#avisoAnt").onclick = () => { mostraAviso(-1); rodaAvisos(); };
+$("#avisoProx").onclick = () => { mostraAviso(1); rodaAvisos(); };
+if(AVISOS.length < 2) $$(".aviso-seta").forEach(b => b.hidden = true);
 
 /* ---------- links, rodapé e números ---------- */
 $$("[data-whats]").forEach(a => a.href = linkWhats());
@@ -200,6 +210,7 @@ function mostrarVista(){
   $("#vArea").hidden   = vista !== "area";
   $("#vProduto").hidden = vista !== "produto";
   document.body.dataset.vista = vista;
+  checaFixo();
   $$("#menuDesk a").forEach(a => {
     if(r.vista === "area" && a.dataset.area === r.g) a.setAttribute("aria-current","page");
     else a.removeAttribute("aria-current");
@@ -361,13 +372,71 @@ $("#adicionar").onclick = () => {
     $("#pTams button:not(:disabled)")?.focus();
     return;
   }
-  const { p, cor, tam, qtd } = sel, chave = `${p.id}|${cor[0]}|${tam}`, ja = sacola.find(i => i.chave === chave);
+  colocarNaSacola(sel.p, sel.cor, sel.tam, sel.qtd);
+  sel.qtd = 1; renderOpcoes();
+};
+function colocarNaSacola(p, cor, tam, qtd){
+  const chave = `${p.id}|${cor[0]}|${tam}`, ja = sacola.find(i => i.chave === chave);
   if(ja) ja.qtd += qtd;
   else sacola.push({ chave, id:p.id, nome:p.nome, cor:cor[0], hex:cor[1], tam, qtd, preco:precoDe(p, tam), foto:fotosDaCor(p, cor[0])[0] || "" });
   salvar(); atualizarSacola(true);
   mostrarToast(qtd > 1 ? `${qtd} peças adicionadas` : "Adicionado à sacola");
-  sel.qtd = 1; renderOpcoes();
+}
+
+/* ---------- adicionar rápido (sacolinha do cartão) ----------
+   se a peça só tem uma opção disponível, já vai direto pra sacola;
+   senão abre uma folha pra escolher cor e tamanho */
+let rap = null;
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-add]"); if(!b) return;
+  const p = PRODUTOS.find(x => x.id === +b.dataset.add); if(!p) return;
+  const livres = [];
+  p.cores.forEach(c => p.tams.forEach(t => { if(!esgotado(p, c[0], t)) livres.push([c, t]); }));
+  if(!livres.length) return;
+  if(livres.length === 1){ colocarNaSacola(p, livres[0][0], livres[0][1], 1); return; }
+  const cor = livres[0][0];
+  rap = { p, cor, tam: null };
+  const doCor = p.tams.filter(t => !esgotado(p, cor[0], t));
+  if(doCor.length === 1) rap.tam = doCor[0];
+  $("#rNome").textContent = p.nome;
+  $("#rTamRotulo").textContent = p.precos ? "Tamanho / volume" : "Tamanho";
+  $("#rVer").href = `#p/${p.id}`;
+  $("#rAviso").textContent = "";
+  renderRapida();
+  abrir($("#folhaRapida"));
+});
+function renderRapida(){
+  const { p, cor, tam } = rap, f = fotosDaCor(p, cor[0])[0];
+  $("#rFoto").innerHTML = f ? `<img src="${esc(f)}" alt="">` : desenho(p, cor[1]);
+  $("#rFoto").style.background = f ? "" : tinta(cor[1]);
+  $("#rPreco").innerHTML = tam ? reais(precoDe(p, tam)) : (p.precos ? "<small>a partir de </small>" : "") + reais(menorPreco(p));
+  $("#rCorNome").textContent = cor[0];
+  $("#rCores").innerHTML = p.cores.map((c,i) =>
+    `<button class="cor" data-i="${i}" style="background:${esc(bolinha(c[1]))}" aria-label="${esc(c[0])}" aria-pressed="${c === cor}"></button>`).join("");
+  $("#rTams").innerHTML = p.tams.map(t => {
+    const fora = esgotado(p, cor[0], t);
+    return `<button class="tam" data-t="${esc(t)}" aria-pressed="${t === tam}"${fora ? ` disabled aria-label="${esc(t)}, esgotado"` : ""}>${esc(t)}</button>`;
+  }).join("");
+  const fora = p.tams.filter(t => esgotado(p, cor[0], t)), tudoFora = fora.length === p.tams.length;
+  $("#rTamNota").textContent = tudoFora ? "Esgotado nessa cor." : fora.length ? `${fora.join(", ")} ${fora.length > 1 ? "esgotados" : "esgotado"} nessa cor.` : "";
+  $("#rAdicionar").disabled = tudoFora;
+}
+$("#rCores").addEventListener("click", e => {
+  const b = e.target.closest("[data-i]"); if(!b) return;
+  rap.cor = rap.p.cores[+b.dataset.i];
+  if(rap.tam && esgotado(rap.p, rap.cor[0], rap.tam)) rap.tam = null;
+  renderRapida();
+});
+$("#rTams").addEventListener("click", e => {
+  const b = e.target.closest("[data-t]"); if(!b || b.disabled) return;
+  rap.tam = b.dataset.t; $("#rAviso").textContent = ""; renderRapida();
+});
+$("#rAdicionar").onclick = () => {
+  if(!rap.tam){ $("#rAviso").textContent = "Escolha um tamanho pra continuar."; $("#rTams button:not(:disabled)")?.focus(); return; }
+  fecharTudo();
+  colocarNaSacola(rap.p, rap.cor, rap.tam, 1);
 };
+$("#rVer").addEventListener("click", () => fecharTudo());
 
 /* ---------- aviso "adicionado" ---------- */
 let tToast;
@@ -476,13 +545,15 @@ if(!reduz && "IntersectionObserver" in window && $("#numeros").children.length){
 $("#pInfoPag span").textContent = LOJA.pagamento ? "Pagamento: " + LOJA.pagamento : "";
 $("#pInfoPag").hidden = !LOJA.pagamento;
 $("#ppFixoAdd").onclick = () => $("#adicionar").click();
-if("IntersectionObserver" in window){
-  new IntersectionObserver(([e]) => {
-    const mostrar = !e.isIntersecting && e.boundingClientRect.top < 0 && document.body.dataset.vista === "produto";
-    $("#ppFixo").classList.toggle("visivel", mostrar);
-    document.body.classList.toggle("fixo-on", mostrar);
-  }).observe($("#adicionar"));
+let fixoPendente = false;
+const celular = matchMedia("(max-width: 899px)");
+function checaFixo(){
+  fixoPendente = false;
+  const mostrar = celular.matches && document.body.dataset.vista === "produto" && $("#adicionar").getBoundingClientRect().bottom < 0;
+  $("#ppFixo").classList.toggle("visivel", mostrar);
+  document.body.classList.toggle("fixo-on", mostrar);
 }
+addEventListener("scroll", () => { if(!fixoPendente){ fixoPendente = true; requestAnimationFrame(checaFixo); } }, {passive:true});
 
 /* ---------- início ---------- */
 function renderInicio(){
