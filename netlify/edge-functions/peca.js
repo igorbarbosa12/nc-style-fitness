@@ -47,7 +47,14 @@ async function paginaDaPeca(url) {
 <meta property="og:title" content="${esc(titulo)}">
 <meta property="og:description" content="${esc(desc)}">`;
       if (escolhida) {
-        const imagem = `${url.origin}/p/${id}/${fotos.indexOf(escolhida)}.jpg`;
+        // fotos que vieram com o site: arquivo JPG pronto em img/previa (o jeito mais simples pro WhatsApp)
+        // fotos do painel (Supabase): convertidas na hora pelo endereço /p/ID/N.jpg
+        let imagem = `${url.origin}/p/${id}/${fotos.indexOf(escolhida)}.jpg`;
+        if (!/^https?:/.test(escolhida)) {
+          const pronta = `${url.origin}/img/previa/${escolhida.split("/").pop().replace(/\.\w+$/, ".jpg")}`;
+          const teste = await fetch(pronta, { method: "HEAD" });
+          if (teste.ok && (teste.headers.get("content-type") || "").startsWith("image/")) imagem = pronta;
+        }
         tags += `
 <meta property="og:image" content="${imagem}">
 <meta property="og:image:secure_url" content="${imagem}">
@@ -98,9 +105,11 @@ async function fotoDaPrevia(url, id, n) {
       const r = await fetch(alvo);
       const tipo = r.headers.get("content-type") || "";
       if (r.ok && tipo.startsWith("image/")) {
-        return new Response(r.body, {
+        // manda a foto inteira de uma vez, com o tamanho informado (alguns leitores de prévia exigem)
+        const bytes = await r.arrayBuffer();
+        return new Response(bytes, {
           status: 200,
-          headers: { "content-type": tipo, "cache-control": "public, max-age=86400" }
+          headers: { "content-type": tipo, "content-length": String(bytes.byteLength), "cache-control": "public, max-age=86400" }
         });
       }
     }
