@@ -1,18 +1,25 @@
 /* ============================================================
    PRÉVIA DA PEÇA NO WHATSAPP
-   Quando alguém abre (ou o WhatsApp lê) site/p/12?cor=Preto,
-   esta função coloca a foto, o nome e o preço daquela peça no HTML.
-   Ela roda no servidor da Netlify. O resto do site continua igual.
+   site/p/12?cor=Preto  → página da peça com foto, nome e preço pro WhatsApp ler
+   site/p/12/0.jpg      → a foto da prévia (JPG quadrado, que o WhatsApp sempre aceita)
+   Roda no servidor da Netlify. O resto do site continua igual.
    ============================================================ */
 const SUPABASE_URL = "https://xblfpqalfxxpnszvcsmy.supabase.co";
 const SUPABASE_KEY = "sb_publishable_j5HwtzGoFV8ycSa7Jpcv_g_E5e44L-L"; // a mesma chave pública do js/supabase.js
 const LOJA = "NC Style Fitness";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
-const reais = v => Number(v).toLocaleString("pt-BR", { style:"currency", currency:"BRL" });
+const reais = v => Number(v).toLocaleString("pt-BR", { style:"currency", currency:"BRL" }).replace(/\s/g, " ");
 
 export default async (request) => {
   const url = new URL(request.url);
+  const foto = url.pathname.match(/^\/p\/(\d+)\/(\d+)\.jpg$/);
+  if (foto) return fotoDaPrevia(url, +foto[1], +foto[2]);
+  return paginaDaPeca(url);
+};
+
+/* ---------- página da peça ---------- */
+async function paginaDaPeca(url) {
   const id = Number(url.pathname.split("/")[2]);
   const cor = url.searchParams.get("cor") || "";
   try {
@@ -25,7 +32,7 @@ export default async (request) => {
     if (p) {
       const fotos = p.fotos || [], fc = p.foto_cores || {};
       // mesma regra do site: foto da cor escolhida, senão as gerais, senão a primeira
-      const foto = (cor && fotos.find(f => fc[f] === cor)) || fotos.find(f => !fc[f]) || fotos[0];
+      const escolhida = (cor && fotos.find(f => fc[f] === cor)) || fotos.find(f => !fc[f]) || fotos[0];
       const precos = (p.variacoes || []).map(v => v.preco).filter(v => v != null).map(Number);
       const preco = precos.length ? "a partir de " + reais(Math.min(...precos)) : reais(p.preco);
       const corValida = (p.variacoes || []).some(v => v.cor === cor) ? cor : "";
@@ -35,21 +42,19 @@ export default async (request) => {
 
       tags += `
 <meta property="og:site_name" content="${LOJA}">
-<meta property="og:type" content="product">
+<meta property="og:type" content="website">
 <meta property="og:url" content="${esc(endereco)}">
 <meta property="og:title" content="${esc(titulo)}">
 <meta property="og:description" content="${esc(desc)}">`;
-      if (foto) {
-        // o WhatsApp não garante WebP: a Netlify converte a foto pra JPG quadrado
-        const origem = /^https?:/.test(foto) ? foto : "/" + foto.replace(/^\/+/, "");
-        const imagem = `${url.origin}/.netlify/images?url=${encodeURIComponent(origem)}&w=600&h=600&fit=cover&fm=jpg`;
+      if (escolhida) {
+        const imagem = `${url.origin}/p/${id}/${fotos.indexOf(escolhida)}.jpg`;
         tags += `
-<meta property="og:image" content="${esc(imagem)}">
+<meta property="og:image" content="${imagem}">
+<meta property="og:image:secure_url" content="${imagem}">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="600">
 <meta property="og:image:height" content="600">
-<meta property="og:image:alt" content="${esc(p.nome)}">
-<meta name="twitter:card" content="summary_large_image">`;
+<meta property="og:image:alt" content="${esc(p.nome)}">`;
       }
       html = html
         .replace(/\s*<meta (?:property|name)="(?:og|twitter):[^>]*>/g, "")
@@ -70,7 +75,41 @@ export default async (request) => {
     // se algo der errado, abre a peça do jeito normal (sem a prévia)
     return Response.redirect(new URL(`/#p/${Number.isInteger(id) ? id : ""}`, url), 302);
   }
-};
+}
+
+/* ---------- foto da prévia ----------
+   1º: a versão JPG pronta em img/previa (fotos que vieram com o site)
+   2º: a Netlify converte a foto pra JPG (fotos que a loja sobe pelo painel)
+   3º: a foto original, do jeito que estiver */
+async function fotoDaPrevia(url, id, n) {
+  try {
+    const p = await buscarPeca(id);
+    const foto = p?.fotos?.[n];
+    if (!foto) return new Response("Foto não encontrada", { status: 404 });
+
+    const local = !/^https?:/.test(foto);
+    const caminho = local ? "/" + foto.replace(/^\/+/, "") : foto;
+    const tentativas = [];
+    if (local) tentativas.push(new URL("/img/previa/" + caminho.split("/").pop().replace(/\.\w+$/, ".jpg"), url));
+    tentativas.push(new URL(`/.netlify/images?url=${encodeURIComponent(caminho)}&w=600&h=600&fit=cover&fm=jpg`, url));
+    tentativas.push(local ? new URL(caminho, url) : new URL(foto));
+
+    for (const alvo of tentativas) {
+      const r = await fetch(alvo);
+      const tipo = r.headers.get("content-type") || "";
+      if (r.ok && tipo.startsWith("image/")) {
+        return new Response(r.body, {
+          status: 200,
+          headers: { "content-type": tipo, "cache-control": "public, max-age=86400" }
+        });
+      }
+    }
+    return new Response("Foto não encontrada", { status: 404 });
+  } catch (erro) {
+    console.error(erro);
+    return new Response("Erro ao carregar a foto", { status: 502 });
+  }
+}
 
 async function buscarPeca(id) {
   const r = await fetch(
