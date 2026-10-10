@@ -68,7 +68,7 @@ async function carregarProdutosDoBanco(){
     return {
       id: p.id, nome: p.nome, descricao: p.descricao || "", cat: p.categoria, grupo: p.grupo,
       preco: Number(p.preco), precoAntigo: p.preco_antigo ? Number(p.preco_antigo) : null,
-      foto: p.fotos[0] || "", fotos: p.fotos, fotoCores: p.foto_cores || {},
+      foto: p.fotos[0] || "", fotos: p.fotos, fotoCores: p.foto_cores || {}, video: p.video || "",
       novo: p.novo, maisVendido: p.mais_vendido,
       cores, tams, esgotado,
       precos: Object.keys(precos).length ? precos : null,

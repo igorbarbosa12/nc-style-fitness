@@ -47,6 +47,8 @@ const esgotado = (p,cor,tam) => (p.esgotado||[]).includes(cor+"|"+tam);
 const grupoDe = p => GRUPOS[p.grupo] ? p.grupo : Object.keys(GRUPOS).find(k => GRUPOS[k].cats.includes(p.cat));
 
 /* ---------- card de produto ---------- */
+const ICONE_PLAY = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10-6.5a1 1 0 0 0 0-1.7l-10-6.6A1 1 0 0 0 8 5.5z"/></svg>`;
+const ICONE_SACOLA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>`;
 function seloDe(p){
   const off = p.precoAntigo ? Math.round((1 - p.preco/p.precoAntigo)*100) : 0;
   if(p.semEstoque) return `<span class="selo escuro">Esgotado</span>`;
@@ -59,12 +61,16 @@ function cardHTML(p){
   const c0 = p.cores[0], fotos = fotosDaCor(p, c0[0]);
   const capa = fotos[0] ? foto(fotos[0], p.nome) + (fotos[1] ? foto(fotos[1], "", "alt") : "") : desenho(p, c0[1]);
   const nomes = p.cores.map(c => c[0]).join(", ");
-  return `<a class="card${p.semEstoque ? " esgotado" : ""}" href="#p/${p.id}">
-    <div class="foto"${fotos[0] ? "" : ` style="background:${esc(tinta(c0[1]))}"`}>${seloDe(p)}${capa}</div>
-    <span class="nome">${esc(p.nome)}</span>
-    <span class="precos">${p.precoAntigo ? `<s>${reais(p.precoAntigo)}</s>` : ""}${p.precos ? "<small>a partir de</small>" : ""}<span class="preco">${reais(menorPreco(p))}</span></span>
-    <span class="cores" role="img" aria-label="${p.cores.length > 1 ? "Cores" : "Cor"}: ${esc(nomes)}">${p.cores.map(c => `<i style="background:${esc(bolinha(c[1]))}"></i>`).join("")}</span>
-  </a>`;
+  const sacolinha = p.semEstoque ? "" :
+    `<div class="card-acoes"><button class="card-add" data-add="${p.id}" aria-label="Adicionar ${esc(p.nome)} à sacola">${ICONE_SACOLA}</button></div>`;
+  return `<div class="card${p.semEstoque ? " esgotado" : ""}">
+    <a class="card-link" href="#p/${p.id}">
+      <div class="foto"${fotos[0] ? "" : ` style="background:${esc(tinta(c0[1]))}"`}>${seloDe(p)}${p.video ? `<span class="tem-video" title="Tem vídeo">${ICONE_PLAY}</span>` : ""}${capa}</div>
+      <span class="nome">${esc(p.nome)}</span>
+      <span class="precos">${p.precoAntigo ? `<s>${reais(p.precoAntigo)}</s>` : ""}${p.precos ? "<small>a partir de</small>" : ""}<span class="preco">${reais(menorPreco(p))}</span></span>
+      <span class="cores" role="img" aria-label="${p.cores.length > 1 ? "Cores" : "Cor"}: ${esc(nomes)}">${p.cores.map(c => `<i style="background:${esc(bolinha(c[1]))}"></i>`).join("")}</span>
+    </a>${sacolinha}
+  </div>`;
 }
 const esqueletos = n => Array(n).fill(`<div class="card esqueleto" aria-hidden="true"><div class="foto"></div><span class="nome"></span><span class="preco"></span></div>`).join("");
 
@@ -75,12 +81,17 @@ document.addEventListener("error", marcaFoto, true);
 function varrerFotos(){ $$("img.fade:not(.ok)").forEach(i => { if(i.complete) i.classList.add("ok"); }); }
 
 /* ---------- faixa de avisos ---------- */
-let iAviso = 1;
-function trocaAviso(){
+let iAviso = 0, tAviso;
+function mostraAviso(d){
+  iAviso = (iAviso + d + AVISOS.length) % AVISOS.length;
   const el = $("#aviso"); el.style.opacity = 0;
-  setTimeout(() => { el.textContent = AVISOS[iAviso++ % AVISOS.length]; el.style.opacity = 1; }, reduz ? 0 : 350);
+  setTimeout(() => { el.textContent = AVISOS[iAviso]; el.style.opacity = 1; }, reduz ? 0 : 300);
 }
-if(AVISOS.length){ $("#aviso").textContent = AVISOS[0]; if(AVISOS.length > 1) setInterval(trocaAviso, 4500); }
+function rodaAvisos(){ clearInterval(tAviso); if(AVISOS.length > 1) tAviso = setInterval(() => mostraAviso(1), 5000); }
+if(AVISOS.length){ $("#aviso").textContent = AVISOS[0]; rodaAvisos(); }
+$("#avisoAnt").onclick = () => { mostraAviso(-1); rodaAvisos(); };
+$("#avisoProx").onclick = () => { mostraAviso(1); rodaAvisos(); };
+if(AVISOS.length < 2) $$(".aviso-seta").forEach(b => b.hidden = true);
 
 /* ---------- links, rodapé e números ---------- */
 $$("[data-whats]").forEach(a => a.href = linkWhats());
@@ -95,8 +106,9 @@ $("#numeros").innerHTML =
 /* ---------- áreas e menus ---------- */
 $("#areas").innerHTML = Object.entries(GRUPOS).map(([k,g]) => `
   <a class="area-card" href="#${k}">
-    <div class="foto">${g.foto ? foto(g.foto, g.nome) : ""}</div>
-    <div class="nome-area"><b>${esc(g.nome)}</b><span>Ver peças</span></div>
+    <div class="foto">${g.foto ? foto(g.foto, "") : ""}
+      <div class="area-rotulo"><b>${esc(g.nome)}</b><span>Ver peças <i aria-hidden="true">→</i></span></div>
+    </div>
   </a>`).join("");
 $("#menuDesk").innerHTML = Object.entries(GRUPOS).map(([k,g]) => `<a href="#${k}" data-area="${k}">${esc(g.nome)}</a>`).join("")
   + `<a href="#todos" data-area="todos">Ver tudo</a>`;
@@ -178,10 +190,14 @@ function aoMudarEndereco(){
     else pilha.push(h);
   }
   const alvo = voltando ? (posicoes[h] || 0) : 0;
-  fecharTudo();
-  mostrarVista();
-  scrollTo(0, alvo);
-  if(alvo) requestAnimationFrame(() => scrollTo(0, alvo));
+  const trocar = () => { fecharTudo(); mostrarVista(); scrollTo(0, alvo); };
+  if(document.startViewTransition && !reduz){
+    // navegadores novos: a página antiga some e a nova aparece suavemente
+    document.startViewTransition(trocar).finished.then(() => { if(alvo) scrollTo(0, alvo); });
+  }else{
+    trocar();
+    if(alvo) requestAnimationFrame(() => scrollTo(0, alvo));
+  }
   const titulo = $(lerRota().vista === "inicio" ? ".hero h1" : (lerRota().vista === "area" ? "#aTitulo" : "#pNome"));
   if(titulo && !voltando){ titulo.tabIndex = -1; titulo.focus({preventScroll:true}); }
 }
@@ -195,6 +211,8 @@ function mostrarVista(){
   $("#vArea").hidden   = vista !== "area";
   $("#vProduto").hidden = vista !== "produto";
   document.body.dataset.vista = vista;
+  if(vista !== "produto") $$("#pGaleria video").forEach(v => v.pause());
+  checaFixo();
   $$("#menuDesk a").forEach(a => {
     if(r.vista === "area" && a.dataset.area === r.g) a.setAttribute("aria-current","page");
     else a.removeAttribute("aria-current");
@@ -277,17 +295,23 @@ function renderPagina(id, corPedida){
   document.title = `${p.nome} | NC Style Fitness`;
   return true;
 }
+let iVideo = -1;   // posição do vídeo na galeria (-1 = sem vídeo)
 function renderGaleria(){
   const { p, cor } = sel, fotos = fotosDaCor(p, cor[0]);
-  const chave = fotos.join("|") || "desenho" + cor[1];
+  const chave = (fotos.join("|") || "desenho" + cor[1]) + "|" + p.video;
   if(chave === galeriaAtual) return;
   galeriaAtual = chave;
   const gal = $("#pGaleria");
-  gal.innerHTML = fotos.length
-    ? fotos.map((f,i) => `<img class="fade" src="${esc(f)}" alt="${esc(p.nome)}, ${esc(cor[0])}, foto ${i+1} de ${fotos.length}" decoding="async">`).join("")
-    : `<div class="desenho" style="background:${esc(tinta(cor[1]))}">${desenho(p, cor[1])}</div>`;
+  const itens = fotos.length
+    ? fotos.map((f,i) => `<img class="fade" src="${esc(f)}" alt="${esc(p.nome)}, ${esc(cor[0])}, foto ${i+1} de ${fotos.length}" decoding="async">`)
+    : [`<div class="desenho" style="background:${esc(tinta(cor[1]))}">${desenho(p, cor[1])}</div>`];
+  // o vídeo entra logo depois da primeira foto
+  iVideo = p.video ? Math.min(1, itens.length) : -1;
+  if(p.video) itens.splice(iVideo, 0,
+    `<div class="pp-video"><video muted loop playsinline preload="none"${reduz ? " controls" : ""} poster="${esc(fotos[0] || "")}" aria-label="Vídeo: ${esc(p.nome)} no corpo"><source src="${esc(p.video)}"></video></div>`);
+  gal.innerHTML = itens.join("");
   gal.scrollLeft = 0;
-  nFotos = Math.max(1, fotos.length);
+  nFotos = itens.length;
   $(".pp-galeria").classList.toggle("uma", nFotos < 2);
   $("#pPontos").innerHTML = Array(nFotos).fill("<i></i>").join("");
   marcarFoto(); varrerFotos();
@@ -297,7 +321,18 @@ function marcarFoto(){
   const i = fotoAtual();
   $("#pContador").textContent = `${i+1} / ${nFotos}`;
   $$("#pPontos i").forEach((d,k) => d.classList.toggle("on", k === i));
+  // o vídeo só toca quando está na tela
+  const v = $("#pGaleria video");
+  $("#pVerVideo").hidden = !v || i === iVideo;
+  if(v){
+    if(i === iVideo && !reduz && document.body.dataset.vista === "produto") v.play().catch(() => {});
+    else v.pause();
+  }
 }
+$("#pVerVideo").onclick = () => {
+  const g = $("#pGaleria");
+  g.scrollTo({ left: iVideo * g.clientWidth, behavior: reduz ? "auto" : "smooth" });
+};
 function irFoto(d){
   const g = $("#pGaleria"), i = (fotoAtual() + d + nFotos) % nFotos;
   g.scrollTo({ left: i * g.clientWidth, behavior: reduz ? "auto" : "smooth" });
@@ -330,6 +365,9 @@ function renderOpcoes(){
     : fora.length ? `${fora.join(", ")} ${fora.length > 1 ? "esgotados" : "esgotado"} nessa cor.` : "";
   $("#pQtd").textContent = qtd;
   $("#adicionar").disabled = tudoFora;
+  $("#ppFixoNome").textContent = p.nome;
+  $("#ppFixoPreco").textContent = tam ? reais(precoDe(p, tam)) : (p.precos ? "a partir de " : "") + reais(menorPreco(p));
+  $("#ppFixoAdd").disabled = tudoFora;
   $("#adicionar").textContent = tudoFora ? "Esgotado nessa cor" : "Adicionar à sacola";
   const link = linkDaPeca(p.id, cor[0]);
   $("#pWhats").href = linkWhats(`Olá! Tenho uma dúvida sobre: ${p.nome} (${cor[0]}${tam ? ", " + tam : ""}).` + (link ? `\n${link}` : ""));
@@ -353,13 +391,71 @@ $("#adicionar").onclick = () => {
     $("#pTams button:not(:disabled)")?.focus();
     return;
   }
-  const { p, cor, tam, qtd } = sel, chave = `${p.id}|${cor[0]}|${tam}`, ja = sacola.find(i => i.chave === chave);
+  colocarNaSacola(sel.p, sel.cor, sel.tam, sel.qtd);
+  sel.qtd = 1; renderOpcoes();
+};
+function colocarNaSacola(p, cor, tam, qtd){
+  const chave = `${p.id}|${cor[0]}|${tam}`, ja = sacola.find(i => i.chave === chave);
   if(ja) ja.qtd += qtd;
   else sacola.push({ chave, id:p.id, nome:p.nome, cor:cor[0], hex:cor[1], tam, qtd, preco:precoDe(p, tam), foto:fotosDaCor(p, cor[0])[0] || "" });
   salvar(); atualizarSacola(true);
   mostrarToast(qtd > 1 ? `${qtd} peças adicionadas` : "Adicionado à sacola");
-  sel.qtd = 1; renderOpcoes();
+}
+
+/* ---------- adicionar rápido (sacolinha do cartão) ----------
+   se a peça só tem uma opção disponível, já vai direto pra sacola;
+   senão abre uma folha pra escolher cor e tamanho */
+let rap = null;
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-add]"); if(!b) return;
+  const p = PRODUTOS.find(x => x.id === +b.dataset.add); if(!p) return;
+  const livres = [];
+  p.cores.forEach(c => p.tams.forEach(t => { if(!esgotado(p, c[0], t)) livres.push([c, t]); }));
+  if(!livres.length) return;
+  if(livres.length === 1){ colocarNaSacola(p, livres[0][0], livres[0][1], 1); return; }
+  const cor = livres[0][0];
+  rap = { p, cor, tam: null };
+  const doCor = p.tams.filter(t => !esgotado(p, cor[0], t));
+  if(doCor.length === 1) rap.tam = doCor[0];
+  $("#rNome").textContent = p.nome;
+  $("#rTamRotulo").textContent = p.precos ? "Tamanho / volume" : "Tamanho";
+  $("#rVer").href = `#p/${p.id}`;
+  $("#rAviso").textContent = "";
+  renderRapida();
+  abrir($("#folhaRapida"));
+});
+function renderRapida(){
+  const { p, cor, tam } = rap, f = fotosDaCor(p, cor[0])[0];
+  $("#rFoto").innerHTML = f ? `<img src="${esc(f)}" alt="">` : desenho(p, cor[1]);
+  $("#rFoto").style.background = f ? "" : tinta(cor[1]);
+  $("#rPreco").innerHTML = tam ? reais(precoDe(p, tam)) : (p.precos ? "<small>a partir de </small>" : "") + reais(menorPreco(p));
+  $("#rCorNome").textContent = cor[0];
+  $("#rCores").innerHTML = p.cores.map((c,i) =>
+    `<button class="cor" data-i="${i}" style="background:${esc(bolinha(c[1]))}" aria-label="${esc(c[0])}" aria-pressed="${c === cor}"></button>`).join("");
+  $("#rTams").innerHTML = p.tams.map(t => {
+    const fora = esgotado(p, cor[0], t);
+    return `<button class="tam" data-t="${esc(t)}" aria-pressed="${t === tam}"${fora ? ` disabled aria-label="${esc(t)}, esgotado"` : ""}>${esc(t)}</button>`;
+  }).join("");
+  const fora = p.tams.filter(t => esgotado(p, cor[0], t)), tudoFora = fora.length === p.tams.length;
+  $("#rTamNota").textContent = tudoFora ? "Esgotado nessa cor." : fora.length ? `${fora.join(", ")} ${fora.length > 1 ? "esgotados" : "esgotado"} nessa cor.` : "";
+  $("#rAdicionar").disabled = tudoFora;
+}
+$("#rCores").addEventListener("click", e => {
+  const b = e.target.closest("[data-i]"); if(!b) return;
+  rap.cor = rap.p.cores[+b.dataset.i];
+  if(rap.tam && esgotado(rap.p, rap.cor[0], rap.tam)) rap.tam = null;
+  renderRapida();
+});
+$("#rTams").addEventListener("click", e => {
+  const b = e.target.closest("[data-t]"); if(!b || b.disabled) return;
+  rap.tam = b.dataset.t; $("#rAviso").textContent = ""; renderRapida();
+});
+$("#rAdicionar").onclick = () => {
+  if(!rap.tam){ $("#rAviso").textContent = "Escolha um tamanho pra continuar."; $("#rTams button:not(:disabled)")?.focus(); return; }
+  fecharTudo();
+  colocarNaSacola(rap.p, rap.cor, rap.tam, 1);
 };
+$("#rVer").addEventListener("click", () => fecharTudo());
 
 /* ---------- aviso "adicionado" ---------- */
 let tToast;
@@ -419,6 +515,93 @@ $("#enviar").onclick = () => {
   window.open(linkWhats(msg), "_blank", "noopener");
 };
 
+/* ---------- vídeo do destaque ----------
+   Só baixa depois que a página carregou, e não baixa em internet fraca,
+   no modo economia de dados ou pra quem pediu menos movimento. */
+const video = $("#heroVideo"), pausa = $("#heroPausa");
+let heroNaTela = true;
+const internetFraca = () => { const c = navigator.connection; return !!(c && (c.saveData || /2g$/.test(c.effectiveType || ""))); };
+const tocar = () => { if(video.querySelector("source") && heroNaTela && !document.hidden && !video.dataset.pausado) video.play().catch(() => {}); };
+function iniciarVideo(){
+  if(!video || reduz || internetFraca()) return;
+  video.innerHTML = `<source src="${video.dataset.webm}" type="video/webm"><source src="${video.dataset.mp4}" type="video/mp4">`;
+  video.addEventListener("playing", () => { video.classList.add("tocando"); pausa.hidden = false; }, { once:true });
+  video.load(); tocar();
+}
+if(video){
+  // pausa quando o destaque sai da tela (economiza bateria) e volta quando aparece
+  if("IntersectionObserver" in window)
+    new IntersectionObserver(([e]) => { heroNaTela = e.isIntersecting; heroNaTela ? tocar() : video.pause(); }).observe(video);
+  document.addEventListener("visibilitychange", () => document.hidden ? video.pause() : tocar());
+  pausa.onclick = () => {
+    const parar = !video.dataset.pausado;
+    if(parar){ video.dataset.pausado = "1"; video.pause(); } else { delete video.dataset.pausado; tocar(); }
+    pausa.classList.toggle("parado", parar);
+    pausa.setAttribute("aria-label", parar ? "Continuar vídeo" : "Pausar vídeo");
+  };
+  if(document.readyState === "complete") setTimeout(iniciarVideo, 300);
+  else addEventListener("load", () => setTimeout(iniciarVideo, 300));
+}
+
+/* ---------- números contando quando aparecem ---------- */
+function contar(el){
+  const m = el.textContent.match(/^(\d+)(.*)$/); if(!m) return;
+  const fim = +m[1], resto = m[2], t0 = performance.now(), dur = 1300;
+  const passo = t => {
+    const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(fim * e) + resto;
+    if(p < 1) requestAnimationFrame(passo);
+  };
+  requestAnimationFrame(passo);
+}
+if(!reduz && "IntersectionObserver" in window && $("#numeros").children.length){
+  const io = new IntersectionObserver(es => { if(es[0].isIntersecting){ $$("#numeros b").forEach(contar); io.disconnect(); } }, { threshold:.6 });
+  io.observe($("#numeros"));
+}
+
+/* ---------- barra fixa da peça (celular) ----------
+   aparece quando o botão "Adicionar à sacola" sobe e sai da tela */
+$("#pInfoPag span").textContent = LOJA.pagamento ? "Pagamento: " + LOJA.pagamento : "";
+$("#pInfoPag").hidden = !LOJA.pagamento;
+$("#ppFixoAdd").onclick = () => $("#adicionar").click();
+let fixoPendente = false;
+const celular = matchMedia("(max-width: 899px)");
+function checaFixo(){
+  fixoPendente = false;
+  const mostrar = celular.matches && document.body.dataset.vista === "produto" && $("#adicionar").getBoundingClientRect().bottom < 0;
+  $("#ppFixo").classList.toggle("visivel", mostrar);
+  document.body.classList.toggle("fixo-on", mostrar);
+}
+addEventListener("scroll", () => { if(!fixoPendente){ fixoPendente = true; requestAnimationFrame(checaFixo); } }, {passive:true});
+
+/* ---------- looks em movimento (vídeos das peças) ----------
+   cada vídeo só baixa e toca quando aparece na tela */
+function videoCardHTML(p){
+  const capa = fotosDaCor(p, p.cores[0][0])[0] || "";
+  return `<a class="vcard" href="#p/${p.id}">
+    <video muted loop playsinline preload="none" poster="${esc(capa)}" data-src="${esc(p.video)}" aria-hidden="true"></video>
+    <span class="vcard-play" aria-hidden="true">${ICONE_PLAY}</span>
+    <span class="vcard-info"><span>${esc(p.nome)}</span><b>${p.precos ? "a partir de " : ""}${reais(menorPreco(p))}</b></span>
+  </a>`;
+}
+let ioVideos = null;
+function renderVideos(){
+  const lista = PRODUTOS.filter(p => p.video && !p.semEstoque);
+  $("#secVideos").hidden = !lista.length;
+  $("#trilhoVideos").innerHTML = lista.map(videoCardHTML).join("");
+  $("#trilhoVideos").classList.toggle("poucos", lista.length < 3);
+  if(!lista.length || reduz || internetFraca() || !("IntersectionObserver" in window)) return;
+  ioVideos?.disconnect();
+  ioVideos = new IntersectionObserver(es => es.forEach(e => {
+    const v = e.target;
+    if(e.isIntersecting){
+      if(!v.src) v.src = v.dataset.src;
+      v.play().then(() => v.parentElement.classList.add("tocando")).catch(() => {});
+    } else v.pause();
+  }), { threshold: .6 });
+  $$("#trilhoVideos video").forEach(v => ioVideos.observe(v));
+}
+
 /* ---------- início ---------- */
 function renderInicio(){
   const mais = PRODUTOS.filter(p => p.maisVendido && !p.semEstoque);
@@ -426,12 +609,17 @@ function renderInicio(){
   $("#trilhoMais").innerHTML = mais.map(cardHTML).join("");
   $("#secMaisVendidos").hidden = !mais.length;
   $("#trilhoNovos").innerHTML = novos.map(cardHTML).join("");
+  renderVideos();
   $("#secNovos").hidden = !novos.length;
   // o botão da foto "Do treino pra rua" leva pra peça que aparece nela
   const look = PRODUTOS.find(p => p.fotos.includes($("#edFoto").getAttribute("src")));
   if(look){
     $("#edLink").href = `#p/${look.id}`;
     $("#edLink").textContent = /^conjunto/i.test(look.cat) ? "Ver esse conjunto" : "Ver a peça da foto";
+    const etiqueta = $("#edLook");
+    etiqueta.href = `#p/${look.id}`;
+    etiqueta.innerHTML = `<span class="look-txt"><small>Na foto</small>${esc(look.nome)}</span><b>${reais(menorPreco(look))}</b><i aria-hidden="true">→</i>`;
+    etiqueta.hidden = false;
   }
 }
 

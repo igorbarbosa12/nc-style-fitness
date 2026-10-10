@@ -150,6 +150,7 @@ function abrirEditor(p){
   ordenarTams(tams);
   const custoUnico=vars.find(v=>v.custo!=null)?.custo ?? null;
   ed={ id:p?.id||null, fotos:[...(p?.fotos||[])], fotoCores:{...(p?.foto_cores||{})}, fotosNovas:[], fotosRemovidas:[],
+       video:p?.video||"", videoNovo:null, videoAntigo:null,
        cores, tams, estoque, precoTam, custoTam, usarPrecoTam:Object.keys(precoTam).length>0 };
 
   $("#eTitulo").textContent = p ? "Editar produto" : "Novo produto";
@@ -168,7 +169,8 @@ function abrirEditor(p){
   $("#eNovo").checked=!!p?.novo;
   $("#eMaisVendido").checked=!!p?.mais_vendido;
   $("#eExcluir").hidden=!p;
-  $("#eErro").textContent=""; $("#eEnviando").textContent="";
+  $("#eErro").textContent=""; $("#eEnviando").textContent=""; $("#eVideoEnviando").textContent="";
+  renderVideo();
 
   renderFotos(); renderCores(); renderTams(); renderPrecoTam(); renderMatriz();
   $("#editor").hidden=false; document.body.style.overflow="hidden";
@@ -186,6 +188,7 @@ $("#eGrupo").addEventListener("change",()=>preencherCategorias());
 /* cancelar: apaga fotos enviadas que não foram salvas */
 document.querySelectorAll("[data-cancelar]").forEach(b=>b.addEventListener("click",async()=>{
   if(ed?.fotosNovas.length) await apagarFotos(ed.fotosNovas);
+  if(ed?.videoNovo) await apagarFotos([ed.videoNovo]);
   fecharEditor();
 }));
 
@@ -243,11 +246,81 @@ async function comprimir(arquivo){
 }
 async function enviarFoto(arquivo){
   const blob=await comprimir(arquivo);
-  const ext=blob.type==="image/webp"?"webp":"jpg";
-  const caminho=`${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+  return enviarArquivo(blob,"",blob.type==="image/webp"?"webp":"jpg");
+}
+async function enviarArquivo(blob,pasta,ext){
+  const caminho=`${pasta}${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
   const { error }=await sb.storage.from(BUCKET).upload(caminho,blob,{contentType:blob.type,cacheControl:"31536000"});
   if(error) throw error;
   return sb.storage.from(BUCKET).getPublicUrl(caminho).data.publicUrl;
+}
+
+/* ---------- vídeo (opcional) ---------- */
+function renderVideo(){
+  $("#eVideo").innerHTML = ed.video
+    ? `<div class="video-prev"><video src="${esc(ed.video)}" muted loop playsinline autoplay></video>
+        <button type="button" class="btn contorno" id="eVideoTirar">Remover vídeo</button></div>`
+    : `<p class="dica">Sem vídeo.</p>`;
+  $("#eVideoTexto").textContent = ed.video ? "Trocar vídeo" : "+ Escolher vídeo";
+}
+$("#eVideo").addEventListener("click",e=>{
+  if(!e.target.closest("#eVideoTirar")) return;
+  if(ed.video===ed.videoNovo){ apagarFotos([ed.videoNovo]); ed.videoNovo=null; }   // ainda não tinha sido salvo
+  else ed.videoAntigo=ed.video;                                                     // apaga quando salvar
+  ed.video=""; $("#eVideoEnviando").textContent=""; renderVideo();
+});
+$("#eVideoArquivo").addEventListener("change",async e=>{
+  const arquivo=e.target.files[0]; e.target.value=""; if(!arquivo) return;
+  if(!arquivo.type.startsWith("video/") && !/\.(mp4|mov|m4v|webm)$/i.test(arquivo.name)) return toast("Escolhe um arquivo de vídeo.",true);
+  const aviso=$("#eVideoEnviando"), salvar=$("#eSalvar");
+  salvar.disabled=true;
+  try{
+    aviso.textContent="Preparando o vídeo...";
+    const blob=await prepararVideo(arquivo,p=>aviso.textContent=`Preparando o vídeo... ${Math.round(p*100)}%`);
+    aviso.textContent="Enviando o vídeo...";
+    const url=await enviarArquivo(blob,"videos/",blob.type==="video/webm"?"webm":"mp4");
+    if(ed.videoNovo) apagarFotos([ed.videoNovo]);      // trocou um vídeo que ainda não tinha sido salvo
+    else if(ed.video) ed.videoAntigo=ed.video;          // o vídeo salvo é apagado quando salvar
+    ed.video=url; ed.videoNovo=url; renderVideo();
+    aviso.textContent=`Vídeo pronto (${(blob.size/1048576).toFixed(1).replace(".",",")} MB). Clique em "Salvar produto".`;
+  }catch(err){ aviso.textContent=""; toast(err.message||"Não deu pra enviar o vídeo.",true); }
+  finally{ salvar.disabled=false; }
+});
+
+/* diminui o vídeo antes de enviar: 720p, sem som, no máximo 15 segundos, em MP4 que abre em qualquer celular.
+   Usa a biblioteca Mediabunny (só é baixada quando alguém escolhe um vídeo). */
+const VIDEO_MAX_SEG=15;
+async function prepararVideo(arquivo,progresso){
+  let mb=null;
+  try{ mb=await import("https://cdn.jsdelivr.net/npm/mediabunny@1.59.1/dist/bundles/mediabunny.min.mjs"); }catch(e){ console.warn(e); }
+  if(mb && typeof VideoEncoder!=="undefined"){
+    const input=new mb.Input({ source:new mb.BlobSource(arquivo), formats:mb.ALL_FORMATS });
+    const trilha=await input.getPrimaryVideoTrack();
+    if(!trilha) throw new Error("Esse arquivo não tem vídeo.");
+    const duracao=await input.computeDuration();
+    const par=n=>Math.max(2,Math.floor(n/2)*2);
+    const deitado=trilha.displayWidth>trilha.displayHeight;
+    const lado=deitado ? { height:par(Math.min(720,trilha.displayHeight)) } : { width:par(Math.min(720,trilha.displayWidth)) };
+    // MP4 (H.264) abre em qualquer celular; se o navegador não souber gerar, usa WebM (VP9)
+    const codec=await mb.getFirstEncodableVideoCodec(["avc","vp9"],{ width:720, height:1280 });
+    if(codec){
+      const mp4=codec==="avc";
+      const output=new mb.Output({ format:mp4 ? new mb.Mp4OutputFormat({ fastStart:"in-memory" }) : new mb.WebMOutputFormat(), target:new mb.BufferTarget() });
+      const conversao=await mb.Conversion.init({ input, output,
+        video:{ ...lado, codec, quality:new mb.Quality({ bitrate:1500000 }), frameRate:30, forceTranscode:true },
+        audio:{ discard:true },
+        ...(duracao>VIDEO_MAX_SEG ? { trim:{ start:0, end:VIDEO_MAX_SEG } } : {}) });
+      if(conversao.isValid){
+        conversao.onProgress=progresso;
+        await conversao.execute();
+        return new Blob([output.target.buffer],{ type:mp4 ? "video/mp4" : "video/webm" });
+      }
+      console.warn("Conversão inválida:",conversao.discardedTracks.map(d=>d.reason).join(", "));
+    }
+  }
+  // navegador sem suporte: só envia se o arquivo já for leve
+  if(arquivo.size<=8*1048576 && /mp4|webm/.test(arquivo.type)) return arquivo;
+  throw new Error("Esse navegador não conseguiu preparar o vídeo. Tenta pelo Chrome, ou exporta o vídeo em 720p (no CapCut, por exemplo) antes de enviar.");
 }
 async function apagarFotos(urls){
   const caminhos=urls.map(u=>u.split(`/object/public/${BUCKET}/`)[1]).filter(Boolean);
@@ -384,7 +457,7 @@ $("#eSalvar").onclick=async()=>{
   const b=$("#eSalvar"); b.disabled=true; b.textContent="Salvando...";
   try{
     const linha={ nome, descricao:$("#eDescricao").value.trim()||null, grupo:$("#eGrupo").value, categoria:$("#eCategoria").value,
-      preco, preco_antigo:precoAntigo, fotos:ed.fotos,
+      preco, preco_antigo:precoAntigo, fotos:ed.fotos, video:ed.video||null,
       foto_cores:Object.fromEntries(Object.entries(ed.fotoCores).filter(([u,c])=>ed.fotos.includes(u)&&ed.cores.some(x=>x.nome===c))), ativo:$("#eAtivo").checked, novo:$("#eNovo").checked, mais_vendido:$("#eMaisVendido").checked };
     let id=ed.id;
     if(id){ const { error }=await sb.from("produtos").update(linha).eq("id",id); if(error) throw error; }
@@ -413,7 +486,8 @@ $("#eSalvar").onclick=async()=>{
     }
 
     if(ed.fotosRemovidas.length) await apagarFotos(ed.fotosRemovidas);
-    ed.fotosNovas=[];
+    if(ed.videoAntigo) await apagarFotos([ed.videoAntigo]);
+    ed.fotosNovas=[]; ed.videoNovo=null; ed.videoAntigo=null;
     toast("Produto salvo!");
     fecharEditor(); carregarProdutos();
   }catch(err){
@@ -426,7 +500,7 @@ $("#eExcluir").onclick=async()=>{
   if(!confirm(`Excluir "${$("#eNome").value}"? Isso apaga o produto, o estoque e as fotos. Não tem como desfazer.\n\nSe só quer tirar do site, desmarque "Mostrar no site".`)) return;
   const { error }=await sb.from("produtos").delete().eq("id",ed.id);
   if(error){ toast("Não deu pra excluir: "+error.message,true); return; }
-  await apagarFotos([...ed.fotos,...ed.fotosRemovidas]);
+  await apagarFotos([...ed.fotos,...ed.fotosRemovidas,ed.video,ed.videoAntigo].filter(Boolean));
   toast("Produto excluído."); fecharEditor(); carregarProdutos();
 };
 

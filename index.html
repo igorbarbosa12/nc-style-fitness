@@ -23,7 +23,11 @@
 
 <a class="pular" href="#conteudo">Pular para o conteúdo</a>
 
-<div class="avisos" aria-live="polite"><span id="aviso">Faça seu pedido direto pelo WhatsApp</span></div>
+<div class="avisos">
+  <button class="aviso-seta" id="avisoAnt" aria-label="Aviso anterior">‹</button>
+  <span id="aviso">Faça seu pedido direto pelo WhatsApp</span>
+  <button class="aviso-seta" id="avisoProx" aria-label="Próximo aviso">›</button>
+</div>
 
 <header class="topo" id="topo">
   <div class="topo-in">
@@ -52,6 +56,13 @@
     <section class="hero" aria-label="Destaque">
       <div class="hero-foto">
         <img src="img/fotos/banner-1-celular.webp" alt="Modelo usando conjunto fitness rosé" width="1024" height="1536" fetchpriority="high">
+        <!-- vídeo leve (sem som) que entra por cima da foto depois que a página carrega -->
+        <video class="hero-video" id="heroVideo" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"
+          data-webm="video/hero.webm" data-mp4="video/hero.mp4"></video>
+        <button class="hero-pausa" id="heroPausa" aria-label="Pausar vídeo" hidden>
+          <svg class="i-pausa" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="7" y="5" width="3.5" height="14" rx="1"/><rect x="13.5" y="5" width="3.5" height="14" rx="1"/></svg>
+          <svg class="i-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10-6.5a1 1 0 0 0 0-1.7l-10-6.6A1 1 0 0 0 8 5.5z"/></svg>
+        </button>
       </div>
       <div class="hero-texto">
         <h1>Do treino ao look casual</h1>
@@ -81,9 +92,28 @@
       <div class="trilho" id="trilhoMais" aria-live="polite"></div>
     </section>
 
+    <!-- vídeos das peças no corpo (só aparece se alguma peça tiver vídeo) -->
+    <section class="secao revela" id="secVideos" hidden>
+      <div class="cab-secao wrap">
+        <h2 class="titulo">Looks em movimento</h2>
+      </div>
+      <div class="videos" id="trilhoVideos"></div>
+    </section>
+
+    <!-- faixa com texto correndo (só enfeite) -->
+    <div class="faixa" aria-hidden="true">
+      <div class="faixa-trilho">
+        <span>Do treino ao look casual</span><i>✦</i><span>Moda fitness feminina e masculina</span><i>✦</i><span>Pedido direto pelo WhatsApp</span><i>✦</i>
+        <span>Do treino ao look casual</span><i>✦</i><span>Moda fitness feminina e masculina</span><i>✦</i><span>Pedido direto pelo WhatsApp</span><i>✦</i>
+      </div>
+    </div>
+
     <section class="editorial revela">
       <div class="editorial-in">
-        <div class="ed-foto"><img id="edFoto" src="img/fotos/banner-2-celular.webp" alt="Modelo com conjunto café e camisa de linho por cima" width="1024" height="1536" loading="lazy"></div>
+        <div class="ed-foto">
+          <img id="edFoto" src="img/fotos/banner-2-celular.webp" alt="Modelo com conjunto café e camisa de linho por cima" width="1024" height="1536" loading="lazy">
+          <a class="look" id="edLook" hidden></a>
+        </div>
         <div class="ed-texto">
           <h2>Do treino pra rua sem trocar de roupa</h2>
           <p>Conjuntos que aguentam o treino e ficam bonitos com uma camisa por cima.</p>
@@ -119,6 +149,14 @@
       <img class="mono" src="img/monograma.svg" alt="" aria-hidden="true" width="84" height="84" loading="lazy">
       <h2 class="titulo">Siga a loja no Instagram</h2>
       <p>Novidades e lançamentos aparecem primeiro por lá.</p>
+      <div class="insta-grade">
+        <a class="lkInsta" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="img/previa/banner-2-celular.jpg" alt="" width="600" height="600" loading="lazy"></a>
+        <a class="lkInsta" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="img/previa/prod-conjunto-short-oliva.jpg" alt="" width="600" height="600" loading="lazy"></a>
+        <a class="lkInsta" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="img/previa/prod-garrafa-rose.jpg" alt="" width="600" height="600" loading="lazy"></a>
+        <a class="lkInsta" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="img/previa/banner-3-celular.jpg" alt="" width="600" height="600" loading="lazy"></a>
+        <a class="lkInsta" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="img/previa/prod-macaquinho-terracota.jpg" alt="" width="600" height="600" loading="lazy"></a>
+        <a class="lkInsta" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="img/previa/cat-moda-praia.jpg" alt="" width="600" height="600" loading="lazy"></a>
+      </div>
       <a class="btn contorno lkInsta" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
         @nc_stylefitness</a>
@@ -148,6 +186,9 @@
         </button>
         <button class="pp-seta ant" id="pAnt" aria-label="Foto anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
         <button class="pp-seta prox" id="pProx" aria-label="Próxima foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button class="pp-ver-video" id="pVerVideo" hidden>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10-6.5a1 1 0 0 0 0-1.7l-10-6.6A1 1 0 0 0 8 5.5z"/></svg>
+          Ver no corpo</button>
         <span class="pp-contador" id="pContador"></span>
         <div class="pp-pontos" id="pPontos" aria-hidden="true"></div>
       </div>
@@ -179,6 +220,12 @@
             Tirar dúvida no WhatsApp</a>
         </div>
 
+        <ul class="pp-infos" id="pInfos">
+          <li id="pInfoPag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h3"/></svg><span></span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7L4 20z"/></svg><span>Entrega e retirada combinadas pelo WhatsApp</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l4-3h10l4 3-3 3v10H6V10z"/></svg><span>Dúvida de tamanho? A gente te ajuda a escolher</span></li>
+        </ul>
+
         <div class="sobre" id="pSobre">
           <h2>Sobre a peça</h2>
           <p id="pDesc"></p>
@@ -194,6 +241,7 @@
 </main>
 
 <footer class="rodape">
+  <img class="r-mono" src="img/monograma.svg" alt="" aria-hidden="true" width="300" height="300" loading="lazy">
   <div class="rodape-in">
     <div class="r-marca">
       <img class="logo" src="img/logo.svg" alt="NC Style Fitness" width="220" height="78" loading="lazy">
@@ -230,8 +278,29 @@
 </aside>
 
 <button class="barra" id="barra" aria-label="Ver sacola"><span id="barraQtd">Ver sacola</span><strong id="barraTotal">R$ 0,00</strong></button>
+<!-- barra fixa da página da peça (celular): aparece quando o botão principal sai da tela -->
+<div class="pp-fixo" id="ppFixo" aria-hidden="true">
+  <div class="pp-fixo-txt"><span id="ppFixoNome"></span><b id="ppFixoPreco"></b></div>
+  <button class="btn" id="ppFixoAdd" tabindex="-1">Adicionar</button>
+</div>
 <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastTxt">Adicionado à sacola</span><button id="toastVer">Ver sacola</button></div>
 <div class="veu" id="veu"></div>
+
+<!-- ADICIONAR RÁPIDO (sacolinha do cartão) -->
+<div class="folha" id="folhaRapida" role="dialog" aria-modal="true" aria-labelledby="rNome">
+  <div class="alca"></div>
+  <button class="fechar" data-fechar aria-label="Fechar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div class="rapida-topo">
+    <div class="rapida-foto" id="rFoto"></div>
+    <div><h2 id="rNome"></h2><div class="rapida-preco" id="rPreco"></div></div>
+  </div>
+  <div class="grupo"><div class="rotulo">Cor: <b id="rCorNome"></b></div><div class="opcoes" id="rCores"></div></div>
+  <div class="grupo"><div class="rotulo" id="rTamRotulo">Tamanho</div><div class="opcoes" id="rTams"></div><p class="nota-tam" id="rTamNota"></p></div>
+  <p class="aviso" id="rAviso" role="alert"></p>
+  <button class="btn cheio" id="rAdicionar">Adicionar à sacola</button>
+  <a class="rapida-ver" id="rVer" href="#">Ver detalhes da peça</a>
+</div>
 
 <!-- SACOLA -->
 <div class="folha" id="folhaSacola" role="dialog" aria-modal="true" aria-labelledby="sTitulo">
