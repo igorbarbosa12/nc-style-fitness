@@ -95,8 +95,9 @@ $("#numeros").innerHTML =
 /* ---------- áreas e menus ---------- */
 $("#areas").innerHTML = Object.entries(GRUPOS).map(([k,g]) => `
   <a class="area-card" href="#${k}">
-    <div class="foto">${g.foto ? foto(g.foto, g.nome) : ""}</div>
-    <div class="nome-area"><b>${esc(g.nome)}</b><span>Ver peças</span></div>
+    <div class="foto">${g.foto ? foto(g.foto, "") : ""}
+      <div class="area-rotulo"><b>${esc(g.nome)}</b><span>Ver peças <i aria-hidden="true">→</i></span></div>
+    </div>
   </a>`).join("");
 $("#menuDesk").innerHTML = Object.entries(GRUPOS).map(([k,g]) => `<a href="#${k}" data-area="${k}">${esc(g.nome)}</a>`).join("")
   + `<a href="#todos" data-area="todos">Ver tudo</a>`;
@@ -178,10 +179,14 @@ function aoMudarEndereco(){
     else pilha.push(h);
   }
   const alvo = voltando ? (posicoes[h] || 0) : 0;
-  fecharTudo();
-  mostrarVista();
-  scrollTo(0, alvo);
-  if(alvo) requestAnimationFrame(() => scrollTo(0, alvo));
+  const trocar = () => { fecharTudo(); mostrarVista(); scrollTo(0, alvo); };
+  if(document.startViewTransition && !reduz){
+    // navegadores novos: a página antiga some e a nova aparece suavemente
+    document.startViewTransition(trocar).finished.then(() => { if(alvo) scrollTo(0, alvo); });
+  }else{
+    trocar();
+    if(alvo) requestAnimationFrame(() => scrollTo(0, alvo));
+  }
   const titulo = $(lerRota().vista === "inicio" ? ".hero h1" : (lerRota().vista === "area" ? "#aTitulo" : "#pNome"));
   if(titulo && !voltando){ titulo.tabIndex = -1; titulo.focus({preventScroll:true}); }
 }
@@ -330,6 +335,9 @@ function renderOpcoes(){
     : fora.length ? `${fora.join(", ")} ${fora.length > 1 ? "esgotados" : "esgotado"} nessa cor.` : "";
   $("#pQtd").textContent = qtd;
   $("#adicionar").disabled = tudoFora;
+  $("#ppFixoNome").textContent = p.nome;
+  $("#ppFixoPreco").textContent = tam ? reais(precoDe(p, tam)) : (p.precos ? "a partir de " : "") + reais(menorPreco(p));
+  $("#ppFixoAdd").disabled = tudoFora;
   $("#adicionar").textContent = tudoFora ? "Esgotado nessa cor" : "Adicionar à sacola";
   const link = linkDaPeca(p.id, cor[0]);
   $("#pWhats").href = linkWhats(`Olá! Tenho uma dúvida sobre: ${p.nome} (${cor[0]}${tam ? ", " + tam : ""}).` + (link ? `\n${link}` : ""));
@@ -419,6 +427,63 @@ $("#enviar").onclick = () => {
   window.open(linkWhats(msg), "_blank", "noopener");
 };
 
+/* ---------- vídeo do destaque ----------
+   Só baixa depois que a página carregou, e não baixa em internet fraca,
+   no modo economia de dados ou pra quem pediu menos movimento. */
+const video = $("#heroVideo"), pausa = $("#heroPausa");
+let heroNaTela = true;
+const internetFraca = () => { const c = navigator.connection; return !!(c && (c.saveData || /2g$/.test(c.effectiveType || ""))); };
+const tocar = () => { if(video.querySelector("source") && heroNaTela && !document.hidden && !video.dataset.pausado) video.play().catch(() => {}); };
+function iniciarVideo(){
+  if(!video || reduz || internetFraca()) return;
+  video.innerHTML = `<source src="${video.dataset.webm}" type="video/webm"><source src="${video.dataset.mp4}" type="video/mp4">`;
+  video.addEventListener("playing", () => { video.classList.add("tocando"); pausa.hidden = false; }, { once:true });
+  video.load(); tocar();
+}
+if(video){
+  // pausa quando o destaque sai da tela (economiza bateria) e volta quando aparece
+  if("IntersectionObserver" in window)
+    new IntersectionObserver(([e]) => { heroNaTela = e.isIntersecting; heroNaTela ? tocar() : video.pause(); }).observe(video);
+  document.addEventListener("visibilitychange", () => document.hidden ? video.pause() : tocar());
+  pausa.onclick = () => {
+    const parar = !video.dataset.pausado;
+    if(parar){ video.dataset.pausado = "1"; video.pause(); } else { delete video.dataset.pausado; tocar(); }
+    pausa.classList.toggle("parado", parar);
+    pausa.setAttribute("aria-label", parar ? "Continuar vídeo" : "Pausar vídeo");
+  };
+  if(document.readyState === "complete") setTimeout(iniciarVideo, 300);
+  else addEventListener("load", () => setTimeout(iniciarVideo, 300));
+}
+
+/* ---------- números contando quando aparecem ---------- */
+function contar(el){
+  const m = el.textContent.match(/^(\d+)(.*)$/); if(!m) return;
+  const fim = +m[1], resto = m[2], t0 = performance.now(), dur = 1300;
+  const passo = t => {
+    const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(fim * e) + resto;
+    if(p < 1) requestAnimationFrame(passo);
+  };
+  requestAnimationFrame(passo);
+}
+if(!reduz && "IntersectionObserver" in window && $("#numeros").children.length){
+  const io = new IntersectionObserver(es => { if(es[0].isIntersecting){ $$("#numeros b").forEach(contar); io.disconnect(); } }, { threshold:.6 });
+  io.observe($("#numeros"));
+}
+
+/* ---------- barra fixa da peça (celular) ----------
+   aparece quando o botão "Adicionar à sacola" sobe e sai da tela */
+$("#pInfoPag span").textContent = LOJA.pagamento ? "Pagamento: " + LOJA.pagamento : "";
+$("#pInfoPag").hidden = !LOJA.pagamento;
+$("#ppFixoAdd").onclick = () => $("#adicionar").click();
+if("IntersectionObserver" in window){
+  new IntersectionObserver(([e]) => {
+    const mostrar = !e.isIntersecting && e.boundingClientRect.top < 0 && document.body.dataset.vista === "produto";
+    $("#ppFixo").classList.toggle("visivel", mostrar);
+    document.body.classList.toggle("fixo-on", mostrar);
+  }).observe($("#adicionar"));
+}
+
 /* ---------- início ---------- */
 function renderInicio(){
   const mais = PRODUTOS.filter(p => p.maisVendido && !p.semEstoque);
@@ -432,6 +497,10 @@ function renderInicio(){
   if(look){
     $("#edLink").href = `#p/${look.id}`;
     $("#edLink").textContent = /^conjunto/i.test(look.cat) ? "Ver esse conjunto" : "Ver a peça da foto";
+    const etiqueta = $("#edLook");
+    etiqueta.href = `#p/${look.id}`;
+    etiqueta.innerHTML = `<span class="look-txt"><small>Na foto</small>${esc(look.nome)}</span><b>${reais(menorPreco(look))}</b><i aria-hidden="true">→</i>`;
+    etiqueta.hidden = false;
   }
 }
 
