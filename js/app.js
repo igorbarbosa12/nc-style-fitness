@@ -47,6 +47,7 @@ const esgotado = (p,cor,tam) => (p.esgotado||[]).includes(cor+"|"+tam);
 const grupoDe = p => GRUPOS[p.grupo] ? p.grupo : Object.keys(GRUPOS).find(k => GRUPOS[k].cats.includes(p.cat));
 
 /* ---------- card de produto ---------- */
+const ICONE_PLAY = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10-6.5a1 1 0 0 0 0-1.7l-10-6.6A1 1 0 0 0 8 5.5z"/></svg>`;
 const ICONE_SACOLA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>`;
 function seloDe(p){
   const off = p.precoAntigo ? Math.round((1 - p.preco/p.precoAntigo)*100) : 0;
@@ -64,7 +65,7 @@ function cardHTML(p){
     `<div class="card-acoes"><button class="card-add" data-add="${p.id}" aria-label="Adicionar ${esc(p.nome)} à sacola">${ICONE_SACOLA}</button></div>`;
   return `<div class="card${p.semEstoque ? " esgotado" : ""}">
     <a class="card-link" href="#p/${p.id}">
-      <div class="foto"${fotos[0] ? "" : ` style="background:${esc(tinta(c0[1]))}"`}>${seloDe(p)}${capa}</div>
+      <div class="foto"${fotos[0] ? "" : ` style="background:${esc(tinta(c0[1]))}"`}>${seloDe(p)}${p.video ? `<span class="tem-video" title="Tem vídeo">${ICONE_PLAY}</span>` : ""}${capa}</div>
       <span class="nome">${esc(p.nome)}</span>
       <span class="precos">${p.precoAntigo ? `<s>${reais(p.precoAntigo)}</s>` : ""}${p.precos ? "<small>a partir de</small>" : ""}<span class="preco">${reais(menorPreco(p))}</span></span>
       <span class="cores" role="img" aria-label="${p.cores.length > 1 ? "Cores" : "Cor"}: ${esc(nomes)}">${p.cores.map(c => `<i style="background:${esc(bolinha(c[1]))}"></i>`).join("")}</span>
@@ -210,6 +211,7 @@ function mostrarVista(){
   $("#vArea").hidden   = vista !== "area";
   $("#vProduto").hidden = vista !== "produto";
   document.body.dataset.vista = vista;
+  if(vista !== "produto") $$("#pGaleria video").forEach(v => v.pause());
   checaFixo();
   $$("#menuDesk a").forEach(a => {
     if(r.vista === "area" && a.dataset.area === r.g) a.setAttribute("aria-current","page");
@@ -293,17 +295,23 @@ function renderPagina(id, corPedida){
   document.title = `${p.nome} | NC Style Fitness`;
   return true;
 }
+let iVideo = -1;   // posição do vídeo na galeria (-1 = sem vídeo)
 function renderGaleria(){
   const { p, cor } = sel, fotos = fotosDaCor(p, cor[0]);
-  const chave = fotos.join("|") || "desenho" + cor[1];
+  const chave = (fotos.join("|") || "desenho" + cor[1]) + "|" + p.video;
   if(chave === galeriaAtual) return;
   galeriaAtual = chave;
   const gal = $("#pGaleria");
-  gal.innerHTML = fotos.length
-    ? fotos.map((f,i) => `<img class="fade" src="${esc(f)}" alt="${esc(p.nome)}, ${esc(cor[0])}, foto ${i+1} de ${fotos.length}" decoding="async">`).join("")
-    : `<div class="desenho" style="background:${esc(tinta(cor[1]))}">${desenho(p, cor[1])}</div>`;
+  const itens = fotos.length
+    ? fotos.map((f,i) => `<img class="fade" src="${esc(f)}" alt="${esc(p.nome)}, ${esc(cor[0])}, foto ${i+1} de ${fotos.length}" decoding="async">`)
+    : [`<div class="desenho" style="background:${esc(tinta(cor[1]))}">${desenho(p, cor[1])}</div>`];
+  // o vídeo entra logo depois da primeira foto
+  iVideo = p.video ? Math.min(1, itens.length) : -1;
+  if(p.video) itens.splice(iVideo, 0,
+    `<div class="pp-video"><video muted loop playsinline preload="none"${reduz ? " controls" : ""} poster="${esc(fotos[0] || "")}" aria-label="Vídeo: ${esc(p.nome)} no corpo"><source src="${esc(p.video)}"></video></div>`);
+  gal.innerHTML = itens.join("");
   gal.scrollLeft = 0;
-  nFotos = Math.max(1, fotos.length);
+  nFotos = itens.length;
   $(".pp-galeria").classList.toggle("uma", nFotos < 2);
   $("#pPontos").innerHTML = Array(nFotos).fill("<i></i>").join("");
   marcarFoto(); varrerFotos();
@@ -313,7 +321,18 @@ function marcarFoto(){
   const i = fotoAtual();
   $("#pContador").textContent = `${i+1} / ${nFotos}`;
   $$("#pPontos i").forEach((d,k) => d.classList.toggle("on", k === i));
+  // o vídeo só toca quando está na tela
+  const v = $("#pGaleria video");
+  $("#pVerVideo").hidden = !v || i === iVideo;
+  if(v){
+    if(i === iVideo && !reduz && document.body.dataset.vista === "produto") v.play().catch(() => {});
+    else v.pause();
+  }
 }
+$("#pVerVideo").onclick = () => {
+  const g = $("#pGaleria");
+  g.scrollTo({ left: iVideo * g.clientWidth, behavior: reduz ? "auto" : "smooth" });
+};
 function irFoto(d){
   const g = $("#pGaleria"), i = (fotoAtual() + d + nFotos) % nFotos;
   g.scrollTo({ left: i * g.clientWidth, behavior: reduz ? "auto" : "smooth" });
@@ -555,6 +574,34 @@ function checaFixo(){
 }
 addEventListener("scroll", () => { if(!fixoPendente){ fixoPendente = true; requestAnimationFrame(checaFixo); } }, {passive:true});
 
+/* ---------- looks em movimento (vídeos das peças) ----------
+   cada vídeo só baixa e toca quando aparece na tela */
+function videoCardHTML(p){
+  const capa = fotosDaCor(p, p.cores[0][0])[0] || "";
+  return `<a class="vcard" href="#p/${p.id}">
+    <video muted loop playsinline preload="none" poster="${esc(capa)}" data-src="${esc(p.video)}" aria-hidden="true"></video>
+    <span class="vcard-play" aria-hidden="true">${ICONE_PLAY}</span>
+    <span class="vcard-info"><span>${esc(p.nome)}</span><b>${p.precos ? "a partir de " : ""}${reais(menorPreco(p))}</b></span>
+  </a>`;
+}
+let ioVideos = null;
+function renderVideos(){
+  const lista = PRODUTOS.filter(p => p.video && !p.semEstoque);
+  $("#secVideos").hidden = !lista.length;
+  $("#trilhoVideos").innerHTML = lista.map(videoCardHTML).join("");
+  $("#trilhoVideos").classList.toggle("poucos", lista.length < 3);
+  if(!lista.length || reduz || internetFraca() || !("IntersectionObserver" in window)) return;
+  ioVideos?.disconnect();
+  ioVideos = new IntersectionObserver(es => es.forEach(e => {
+    const v = e.target;
+    if(e.isIntersecting){
+      if(!v.src) v.src = v.dataset.src;
+      v.play().then(() => v.parentElement.classList.add("tocando")).catch(() => {});
+    } else v.pause();
+  }), { threshold: .6 });
+  $$("#trilhoVideos video").forEach(v => ioVideos.observe(v));
+}
+
 /* ---------- início ---------- */
 function renderInicio(){
   const mais = PRODUTOS.filter(p => p.maisVendido && !p.semEstoque);
@@ -562,6 +609,7 @@ function renderInicio(){
   $("#trilhoMais").innerHTML = mais.map(cardHTML).join("");
   $("#secMaisVendidos").hidden = !mais.length;
   $("#trilhoNovos").innerHTML = novos.map(cardHTML).join("");
+  renderVideos();
   $("#secNovos").hidden = !novos.length;
   // o botão da foto "Do treino pra rua" leva pra peça que aparece nela
   const look = PRODUTOS.find(p => p.fotos.includes($("#edFoto").getAttribute("src")));

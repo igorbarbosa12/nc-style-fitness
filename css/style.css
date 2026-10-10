@@ -164,6 +164,9 @@ p{text-wrap:pretty}
   text-transform:uppercase;padding:4px 8px;border-radius:4px}
 .selo.escuro{background:var(--tinta);color:#fff}
 .selo.off{background:var(--acento);color:#fff}
+.tem-video{position:absolute;top:8px;right:8px;z-index:1;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(253,251,249,.92);color:var(--tinta)}
+.tem-video svg{width:11px;height:11px;margin-left:1px}
 .card .nome{font-size:13.5px;font-weight:600;line-height:1.3;margin-top:6px}
 .card .precos{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
 .card .preco{font-size:14px;font-weight:500}
@@ -197,6 +200,20 @@ img.fade.ok{opacity:1}
 .faixa-trilho > *{margin-right:26px;flex:0 0 auto}
 .faixa span{font-family:var(--elegante);font-size:26px;line-height:1.1;white-space:nowrap}
 .faixa i{font-style:normal;color:var(--rose);font-size:15px}
+
+/* ====== LOOKS EM MOVIMENTO (vídeos) ====== */
+.videos{display:flex;gap:10px;overflow-x:auto;padding:0 16px 6px;scroll-snap-type:x mandatory;scroll-padding-inline:16px;scrollbar-width:none;overscroll-behavior-x:contain}
+.videos::-webkit-scrollbar{display:none}
+.vcard{position:relative;flex:0 0 min(62vw,260px);aspect-ratio:9/16;border-radius:var(--raio);overflow:hidden;background:var(--foto);
+  scroll-snap-align:start;text-decoration:none;color:#fff;isolation:isolate}
+.vcard video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.vcard-play{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(253,251,249,.9);color:var(--tinta);transition:opacity .4s}
+.vcard-play svg{width:13px;height:13px;margin-left:2px}
+.vcard.tocando .vcard-play{opacity:0}
+.vcard-info{position:absolute;left:0;right:0;bottom:0;padding:56px 14px 14px;display:flex;flex-direction:column;gap:2px;
+  background:linear-gradient(180deg,rgba(30,24,23,0),rgba(30,24,23,.66));font-size:13.5px;font-weight:600;line-height:1.3;text-shadow:0 1px 6px rgba(20,14,13,.3)}
+.vcard-info b{font-weight:500;font-size:14px}
 
 /* ====== EDITORIAL ====== */
 .editorial{margin-top:44px}
@@ -278,6 +295,11 @@ body.tem-sacola .rodape-fim,body[data-vista="produto"] .rodape-fim{padding-botto
 .galeria > *{flex:0 0 100%;width:100%;height:100%;scroll-snap-align:start;scroll-snap-stop:always}
 .galeria img{object-fit:cover;object-position:50% 20%}
 .galeria .desenho{display:grid;place-items:center}
+.pp-video{position:relative;background:var(--hero-fundo)}
+.pp-video video{width:100%;height:100%;object-fit:cover}
+.pp-ver-video{position:absolute;left:12px;bottom:12px;display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px;border-radius:999px;
+  background:rgba(253,251,249,.94);color:var(--tinta);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;box-shadow:0 2px 10px rgba(30,24,23,.12)}
+.pp-ver-video svg{width:12px;height:12px}
 .galeria .desenho svg{width:50%}
 .pp-voltar,.pp-seta{width:42px;height:42px;border-radius:50%;background:rgba(253,251,249,.92);display:grid;place-items:center;color:var(--tinta);box-shadow:0 2px 10px rgba(30,24,23,.1)}
 .pp-voltar{position:absolute;top:12px;left:12px}
@@ -479,6 +501,12 @@ html.anima .revela.visto{opacity:1;transform:none}
   .card .preco{font-size:15px}
   .card-acoes{padding:12px}
   .card-add{width:42px;height:42px}
+
+  .videos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;overflow:visible;max-width:1280px;margin:0 auto;padding:0 32px}
+  .videos.poucos{grid-template-columns:repeat(auto-fill,minmax(220px,280px));justify-content:start}
+  .vcard{flex:none}
+  .vcard-info{padding:72px 18px 18px;font-size:14px}
+  .tem-video{top:12px;right:12px}
 
   .faixa{margin-top:90px;padding:20px 0}
   .faixa span{font-size:40px}

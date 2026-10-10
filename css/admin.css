@@ -103,6 +103,8 @@ textarea{resize:vertical}
 .foto .acoes{position:absolute;right:4px;top:100px;display:flex;gap:4px}
 .foto .acoes button{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.92);font-size:.85rem;font-weight:600}
 .subir{cursor:pointer}
+.video-prev{display:flex;align-items:flex-end;gap:12px;margin:12px 0}
+.video-prev video{width:120px;aspect-ratio:9/16;object-fit:cover;border-radius:10px;background:var(--areia)}
 
 /* chips de cor e tamanho */
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}

@@ -175,6 +175,17 @@
     </fieldset>
 
     <fieldset class="bloco">
+      <legend>Vídeo (opcional)</legend>
+      <p class="dica">Um vídeo curto da peça no corpo, de até 15 segundos. Aparece na página da peça e em "Looks em movimento". O painel diminui o vídeo e tira o som antes de enviar.</p>
+      <div id="eVideo"></div>
+      <label class="btn contorno subir">
+        <input type="file" id="eVideoArquivo" accept="video/*" hidden>
+        <span id="eVideoTexto">+ Escolher vídeo</span>
+      </label>
+      <p class="dica" id="eVideoEnviando"></p>
+    </fieldset>
+
+    <fieldset class="bloco">
       <legend>Informações</legend>
       <label class="campo"><span>Nome do produto</span><input id="eNome" placeholder="Ex: Conjunto Leg Canelada"></label>
       <div class="duas">

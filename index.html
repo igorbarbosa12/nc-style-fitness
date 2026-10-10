@@ -92,6 +92,14 @@
       <div class="trilho" id="trilhoMais" aria-live="polite"></div>
     </section>
 
+    <!-- vídeos das peças no corpo (só aparece se alguma peça tiver vídeo) -->
+    <section class="secao revela" id="secVideos" hidden>
+      <div class="cab-secao wrap">
+        <h2 class="titulo">Looks em movimento</h2>
+      </div>
+      <div class="videos" id="trilhoVideos"></div>
+    </section>
+
     <!-- faixa com texto correndo (só enfeite) -->
     <div class="faixa" aria-hidden="true">
       <div class="faixa-trilho">
@@ -178,6 +186,9 @@
         </button>
         <button class="pp-seta ant" id="pAnt" aria-label="Foto anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
         <button class="pp-seta prox" id="pProx" aria-label="Próxima foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button class="pp-ver-video" id="pVerVideo" hidden>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10-6.5a1 1 0 0 0 0-1.7l-10-6.6A1 1 0 0 0 8 5.5z"/></svg>
+          Ver no corpo</button>
         <span class="pp-contador" id="pContador"></span>
         <div class="pp-pontos" id="pPontos" aria-hidden="true"></div>
       </div>
