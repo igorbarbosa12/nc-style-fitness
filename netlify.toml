@@ -1,0 +1,27 @@
+# Configuração da Netlify. O site não tem etapa de build: publica a pasta como está.
+[build]
+  publish = "."
+
+# Deixa a Netlify converter as fotos do painel (que ficam no Supabase) pra JPG
+# na prévia do WhatsApp
+[images]
+  remote_images = ['https://xblfpqalfxxpnszvcsmy\.supabase\.co/.*']
+
+# Esconde da internet os arquivos que não fazem parte do site
+[[redirects]]
+  from = "/supabase/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/netlify/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/netlify.toml"
+  to = "/404.html"
+  status = 404
+  force = true

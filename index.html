@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NC Style Fitness | Do treino ao look casual</title>
+<meta name="description" content="Moda fitness feminina e masculina. Escolha suas peças e finalize o pedido pelo WhatsApp.">
+<meta name="theme-color" content="#FDFBF9">
+<meta property="og:title" content="NC Style Fitness">
+<meta property="og:description" content="Do treino ao look casual. Pedido direto pelo WhatsApp.">
+<meta property="og:image" content="https://ncstylefitness.netlify.app/.netlify/images?url=/img/fotos/banner-1-celular.webp&amp;w=800&amp;h=800&amp;fit=cover&amp;position=top&amp;fm=jpg">
+<link rel="icon" href="img/monograma.svg" type="image/svg+xml">
+<link rel="preload" as="image" href="img/fotos/banner-1-celular.webp" fetchpriority="high">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-vista="inicio">
+
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+<div class="avisos" aria-live="polite"><span id="aviso">Faça seu pedido direto pelo WhatsApp</span></div>
+
+<header class="topo" id="topo">
+  <div class="topo-in">
+    <button class="ico btn-menu" id="abrirMenu" aria-label="Abrir menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <a class="marca" href="#" aria-label="NC Style Fitness, início"><img class="logo" src="img/logo.svg" alt="NC Style Fitness" width="161" height="57"></a>
+    <nav class="menu-desk" id="menuDesk" aria-label="Áreas da loja"></nav>
+    <div class="acoes">
+      <a class="pill-whats" data-whats target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7L4 20z"/></svg>
+        WhatsApp</a>
+      <button class="ico" id="abrirSacola" aria-label="Abrir sacola">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        <span class="contador" id="contador" hidden>0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="conteudo">
+
+  <!-- ===================== INÍCIO ===================== -->
+  <div class="vista" id="vInicio">
+
+    <section class="hero" aria-label="Destaque">
+      <div class="hero-foto">
+        <img src="img/fotos/banner-1-celular.webp" alt="Modelo usando conjunto fitness rosé" width="1024" height="1536" fetchpriority="high">
+      </div>
+      <div class="hero-texto">
+        <h1>Do treino ao look casual</h1>
+        <p>Moda fitness feminina e masculina. Escolha as peças no site e finalize o pedido direto pelo WhatsApp.</p>
+        <div class="botoes">
+          <a class="btn btn-hero" href="#feminino">Ver feminino</a>
+          <a class="btn contorno btn-hero2" href="#masculino">Ver masculino</a>
+        </div>
+      </div>
+      <ul class="confianca">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7L4 20z"/></svg>Pedido pelo WhatsApp</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6a2 2 0 1 1 2-2M12 6v1.5L3 15c-.8.7-.3 2 .8 2h16.4c1.1 0 1.6-1.3.8-2L12 7.5"/></svg>Feminino e masculino</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"/></svg>Atendimento de perto</li>
+      </ul>
+    </section>
+
+    <section class="secao wrap revela">
+      <h2 class="titulo">Escolha sua área</h2>
+      <div class="areas" id="areas"></div>
+    </section>
+
+    <section class="secao revela" id="secMaisVendidos">
+      <div class="cab-secao wrap">
+        <h2 class="titulo">Mais vendidos</h2>
+        <a class="link" href="#todos">Ver tudo</a>
+      </div>
+      <div class="trilho" id="trilhoMais" aria-live="polite"></div>
+    </section>
+
+    <section class="editorial revela">
+      <div class="editorial-in">
+        <div class="ed-foto"><img id="edFoto" src="img/fotos/banner-2-celular.webp" alt="Modelo com conjunto café e camisa de linho por cima" width="1024" height="1536" loading="lazy"></div>
+        <div class="ed-texto">
+          <h2>Do treino pra rua sem trocar de roupa</h2>
+          <p>Conjuntos que aguentam o treino e ficam bonitos com uma camisa por cima.</p>
+          <a class="btn" id="edLink" href="#feminino">Ver feminino</a>
+          <div class="numeros" id="numeros"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="secao revela" id="secNovos">
+      <div class="cab-secao wrap">
+        <h2 class="titulo">Lançamentos</h2>
+        <a class="link" href="#todos">Ver tudo</a>
+      </div>
+      <div class="trilho" id="trilhoNovos"></div>
+    </section>
+
+    <section class="wrap revela">
+      <div class="ele">
+        <div class="ele-texto">
+          <h2>Pra ele também</h2>
+          <p>Camisas e shorts pro treino e pro dia a dia.</p>
+          <a class="btn contorno" href="#masculino">Ver masculino</a>
+        </div>
+        <picture class="ele-foto">
+          <source media="(min-width: 900px)" srcset="img/fotos/banner-3-pc.webp" width="1536" height="1024">
+          <img src="img/fotos/banner-3-celular.webp" alt="Modelo com camisa preta e short cinza" width="1024" height="1536" loading="lazy">
+        </picture>
+      </div>
+    </section>
+
+    <section class="insta revela">
+      <img class="mono" src="img/monograma.svg" alt="" aria-hidden="true" width="84" height="84" loading="lazy">
+      <h2 class="titulo">Siga a loja no Instagram</h2>
+      <p>Novidades e lançamentos aparecem primeiro por lá.</p>
+      <a class="btn contorno lkInsta" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+        @nc_stylefitness</a>
+    </section>
+  </div>
+
+  <!-- ===================== ÁREA (#feminino, #masculino, #praia, #acessorios, #todos) ===================== -->
+  <div class="vista wrap" id="vArea" hidden>
+    <a class="voltar" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      Início</a>
+    <div class="area-cab">
+      <h1 id="aTitulo">Todos os produtos</h1>
+      <span id="aQtd"></span>
+    </div>
+    <nav class="chips" id="aChips" aria-label="Categorias"></nav>
+    <div class="grade" id="aGrade" aria-live="polite"></div>
+  </div>
+
+  <!-- ===================== PRODUTO (#p/ID) ===================== -->
+  <div class="vista" id="vProduto" hidden>
+    <div class="pp">
+      <div class="pp-galeria">
+        <div class="galeria" id="pGaleria" tabindex="0" aria-label="Fotos do produto"></div>
+        <button class="pp-voltar" id="pVoltar" aria-label="Voltar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button class="pp-seta ant" id="pAnt" aria-label="Foto anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <button class="pp-seta prox" id="pProx" aria-label="Próxima foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+        <span class="pp-contador" id="pContador"></span>
+        <div class="pp-pontos" id="pPontos" aria-hidden="true"></div>
+      </div>
+
+      <div class="pp-info">
+        <span class="pp-cat" id="pCat"></span>
+        <h1 id="pNome"></h1>
+        <div class="pp-preco" id="pPreco"></div>
+
+        <div class="grupo">
+          <div class="rotulo">Cor: <b id="pCorNome"></b></div>
+          <div class="opcoes" id="pCores"></div>
+        </div>
+        <div class="grupo">
+          <div class="rotulo" id="pTamRotulo">Tamanho</div>
+          <div class="opcoes" id="pTams"></div>
+          <p class="nota-tam" id="pTamNota"></p>
+        </div>
+        <div class="grupo">
+          <div class="rotulo">Quantidade</div>
+          <div class="qtd"><button id="menos" aria-label="Diminuir">−</button><span id="pQtd">1</span><button id="mais" aria-label="Aumentar">+</button></div>
+        </div>
+
+        <p class="aviso" id="pAviso" role="alert"></p>
+        <div class="pp-botoes">
+          <button class="btn cheio" id="adicionar">Adicionar à sacola</button>
+          <a class="btn contorno cheio" id="pWhats" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7L4 20z"/></svg>
+            Tirar dúvida no WhatsApp</a>
+        </div>
+
+        <div class="sobre" id="pSobre">
+          <h2>Sobre a peça</h2>
+          <p id="pDesc"></p>
+        </div>
+      </div>
+    </div>
+
+    <section class="secao relacionados" id="pRelSecao">
+      <div class="cab-secao wrap"><h2 class="titulo">Você também pode gostar</h2></div>
+      <div class="trilho" id="pRel"></div>
+    </section>
+  </div>
+</main>
+
+<footer class="rodape">
+  <div class="rodape-in">
+    <div class="r-marca">
+      <img class="logo" src="img/logo.svg" alt="NC Style Fitness" width="220" height="78" loading="lazy">
+      <span>Moda fitness feminina e masculina.</span>
+    </div>
+    <nav class="r-loja" aria-label="Áreas da loja no rodapé">
+      <b>Loja</b>
+      <a href="#feminino">Feminino</a>
+      <a href="#masculino">Masculino</a>
+      <a href="#praia">Moda Praia</a>
+      <a href="#acessorios">Acessórios</a>
+    </nav>
+    <div class="r-atend">
+      <b>Atendimento</b>
+      <span id="rHorario"></span>
+      <span id="rPagamento"></span>
+      <div class="r-links">
+        <a data-whats target="_blank" rel="noopener">Chamar no WhatsApp</a>
+        <a class="lkInsta" target="_blank" rel="noopener">Instagram</a>
+      </div>
+    </div>
+  </div>
+  <div class="rodape-fim">
+    <span>© NC Style Fitness</span>
+    <span id="rDemo" hidden>Site de demonstração: produtos, preços e fotos são ilustrativos.</span>
+  </div>
+</footer>
+
+<!-- MENU LATERAL (celular) -->
+<aside class="gaveta" id="gaveta" aria-label="Menu" role="dialog" aria-modal="true">
+  <div class="cab"><img class="logo" src="img/logo.svg" alt="NC Style Fitness" width="130" height="46"><button class="ico" data-fechar aria-label="Fechar menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div id="menuLista"></div>
+</aside>
+
+<button class="barra" id="barra" aria-label="Ver sacola"><span id="barraQtd">Ver sacola</span><strong id="barraTotal">R$ 0,00</strong></button>
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toastTxt">Adicionado à sacola</span><button id="toastVer">Ver sacola</button></div>
+<div class="veu" id="veu"></div>
+
+<!-- SACOLA -->
+<div class="folha" id="folhaSacola" role="dialog" aria-modal="true" aria-labelledby="sTitulo">
+  <div class="alca"></div>
+  <button class="fechar" data-fechar aria-label="Fechar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <h2 id="sTitulo">Sua sacola</h2>
+  <div id="sItens"></div>
+  <div id="sFim">
+    <div class="total"><span>Total</span><span id="sTotal"></span></div>
+    <label class="campo"><span>Seu nome</span><input id="sNome" autocomplete="name" placeholder="Como podemos te chamar?"></label>
+    <label class="campo"><span>Observação (opcional)</span><textarea id="sObs" rows="2" placeholder="Ex: prefiro receber à tarde"></textarea></label>
+    <p class="aviso" id="sAviso" role="alert"></p>
+    <button class="btn cheio" id="enviar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7L4 20z"/></svg>
+      Enviar pedido no WhatsApp</button>
+    <p class="nota">Pagamento e entrega são combinados pelo WhatsApp.</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/dados.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

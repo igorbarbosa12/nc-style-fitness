@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel | NC Style Fitness</title>
+<meta name="theme-color" content="#FDFBF9">
+<link rel="icon" href="img/monograma.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<!-- ============ TELA DE LOGIN ============ -->
+<section class="login" id="telaLogin" hidden>
+  <form class="login-caixa" id="formLogin">
+    <img src="img/logo.svg" alt="NC Style Fitness" class="login-logo">
+    <h1>Painel da loja</h1>
+    <label class="campo"><span>E-mail</span><input type="email" id="lEmail" autocomplete="username" required></label>
+    <label class="campo"><span>Senha</span><input type="password" id="lSenha" autocomplete="current-password" required></label>
+    <p class="erro" id="lErro"></p>
+    <button class="btn cheio" id="lBotao">Entrar</button>
+  </form>
+</section>
+
+<!-- ============ PAINEL ============ -->
+<section id="telaPainel" hidden>
+  <header class="topo">
+    <img src="img/logo.svg" alt="NC Style Fitness" class="topo-logo">
+    <div class="topo-acoes">
+      <a href="index.html" target="_blank" class="link">Ver site</a>
+      <button class="link" id="sair">Sair</button>
+    </div>
+  </header>
+
+  <!-- ============ RESUMO (DASHBOARD) ============ -->
+  <main class="conteudo" data-tela="resumo" hidden>
+    <div class="titulo-linha">
+      <h1>Resumo</h1>
+      <input type="month" id="rsMes" class="mes-mini" aria-label="Mês">
+    </div>
+    <div class="kpis" id="rsKpis"></div>
+    <section class="cartao">
+      <div class="cartao-cab">
+        <h2>Entradas e saídas</h2>
+        <div class="legenda"><span><i class="sw ent"></i>Entradas</span><span><i class="sw sai"></i>Saídas</span></div>
+      </div>
+      <p class="dica">Últimos 6 meses. Toque numa barra pra ver os valores.</p>
+      <div class="grafico" id="rsGrafico"></div>
+      <details class="tabela-ver"><summary>Ver em números</summary><div id="rsTabela"></div></details>
+    </section>
+    <div class="duas-cartas">
+      <section class="cartao"><h2>Mais vendidos do mês</h2><div id="rsTop"></div></section>
+      <section class="cartao"><h2>Pra onde foi o dinheiro</h2><p class="dica">Saídas do mês por categoria</p><div id="rsSaidas"></div></section>
+    </div>
+    <section class="cartao"><h2>Atenção</h2><div id="rsAtencao"></div></section>
+  </main>
+
+  <!-- ============ PRODUTOS ============ -->
+  <main class="conteudo" data-tela="produtos">
+    <div class="titulo-linha">
+      <h1>Produtos</h1>
+      <button class="btn" id="novoProduto">+ Novo produto</button>
+    </div>
+
+    <div class="resumo" id="resumo"></div>
+
+    <div class="filtros">
+      <input type="search" id="busca" placeholder="Buscar produto...">
+      <select id="fGrupo"><option value="">Todos os grupos</option></select>
+      <select id="fStatus">
+        <option value="">Todos</option>
+        <option value="ativos">Visíveis no site</option>
+        <option value="inativos">Escondidos</option>
+        <option value="esgotados">Esgotados</option>
+        <option value="baixo">Estoque baixo</option>
+        <option value="semcusto">Sem custo cadastrado</option>
+      </select>
+    </div>
+
+    <div class="lista" id="lista"><p class="vazio">Carregando...</p></div>
+  </main>
+
+  <!-- ============ VENDAS ============ -->
+  <main class="conteudo" data-tela="vendas" hidden>
+    <div class="titulo-linha">
+      <h1>Vendas</h1>
+      <button class="btn" id="novaVenda">+ Registrar venda</button>
+    </div>
+    <label class="periodo"><span>Mês</span><input type="month" id="vMes"></label>
+    <div class="resumo" id="vResumo"></div>
+    <div class="lista" id="vLista"><p class="vazio">Carregando...</p></div>
+  </main>
+
+  <!-- ============ FIADO ============ -->
+  <main class="conteudo" data-tela="fiado" hidden>
+    <div class="titulo-linha">
+      <h1>Fiado</h1>
+      <button class="btn contorno" id="novaCliente">+ Cliente</button>
+    </div>
+    <div class="resumo duas-col" id="fResumo"></div>
+    <div class="filtros dois">
+      <input type="search" id="fBusca" placeholder="Buscar cliente...">
+      <select id="fMostrar">
+        <option value="devendo">Quem está devendo</option>
+        <option value="todas">Todos os clientes</option>
+      </select>
+    </div>
+    <div class="lista" id="fLista"><p class="vazio">Carregando...</p></div>
+  </main>
+
+  <!-- ============ CAIXA (FINANCEIRO) ============ -->
+  <main class="conteudo" data-tela="caixa" hidden>
+    <div class="titulo-linha">
+      <h1>Caixa</h1>
+      <div class="acoes-titulo">
+        <button class="btn contorno" id="novaEntrada">+ Entrada</button>
+        <button class="btn" id="novaSaida">+ Saída</button>
+      </div>
+    </div>
+    <label class="periodo"><span>Mês</span><input type="month" id="cxMes"></label>
+    <div class="resumo tres-col" id="cxResumo"></div>
+    <div class="filtros dois">
+      <input type="search" id="cxBusca" placeholder="Buscar no extrato...">
+      <select id="cxTipo">
+        <option value="">Entradas e saídas</option>
+        <option value="entrada">Só entradas</option>
+        <option value="saida">Só saídas</option>
+      </select>
+    </div>
+    <div class="lista" id="cxLista"><p class="vazio">Carregando...</p></div>
+  </main>
+
+  <!-- ============ MENU DE ABAS ============ -->
+  <nav class="abas-painel" aria-label="Seções do painel">
+    <button data-aba="resumo">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      Resumo</button>
+    <button data-aba="produtos">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6a2 2 0 1 1 2-2M12 6v1.5L3 15c-.8.7-.3 2 .8 2h16.4c1.1 0 1.6-1.3.8-2L12 7.5"/></svg>
+      Produtos</button>
+    <button data-aba="vendas">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+      Vendas</button>
+    <button data-aba="fiado">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h11a1 1 0 0 1 1 1v17l-3-2-3 2-3-2-3 2V4a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 12h6"/></svg>
+      Fiado</button>
+    <button data-aba="caixa">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg>
+      Caixa</button>
+  </nav>
+</section>
+
+<!-- ============ EDITOR DE PRODUTO ============ -->
+<section class="editor" id="editor" hidden aria-labelledby="eTitulo">
+  <header class="editor-topo">
+    <button class="link" data-cancelar>← Voltar</button>
+    <h2 id="eTitulo">Novo produto</h2>
+    <span></span>
+  </header>
+
+  <div class="editor-corpo">
+    <fieldset class="bloco">
+      <legend>Fotos</legend>
+      <p class="dica">A primeira foto é a capa. Dá pra mandar várias de uma vez.</p>
+      <div class="fotos" id="eFotos"></div>
+      <label class="btn contorno subir">
+        <input type="file" id="eArquivo" accept="image/*" multiple hidden>
+        + Adicionar fotos
+      </label>
+      <p class="dica" id="eEnviando"></p>
+    </fieldset>
+
+    <fieldset class="bloco">
+      <legend>Informações</legend>
+      <label class="campo"><span>Nome do produto</span><input id="eNome" placeholder="Ex: Conjunto Leg Canelada"></label>
+      <div class="duas">
+        <label class="campo"><span>Grupo</span><select id="eGrupo"></select></label>
+        <label class="campo"><span>Categoria</span><select id="eCategoria"></select></label>
+      </div>
+      <label class="campo"><span>Descrição (opcional)</span><textarea id="eDescricao" rows="3" placeholder="Tecido, caimento, detalhes..."></textarea></label>
+    </fieldset>
+
+    <fieldset class="bloco">
+      <legend>Preço</legend>
+      <div class="duas">
+        <label class="campo" id="ePrecoCampo"><span>Preço (R$)</span><input id="ePreco" inputmode="decimal" placeholder="0,00"></label>
+        <label class="campo"><span>Preço antigo (opcional)</span><input id="ePrecoAntigo" inputmode="decimal" placeholder="Pra mostrar promoção"></label>
+      </div>
+      <label class="campo" id="eCustoCampo"><span>Custo da peça (R$) · só você vê, não aparece no site</span><input id="eCusto" inputmode="decimal" placeholder="Quanto você pagou em cada peça"></label>
+      <p class="dica margem" id="eMargem"></p>
+      <label class="check"><input type="checkbox" id="eUsarPrecoTam"> Preço diferente por tamanho (ex: garrafas)</label>
+      <div id="ePrecoTam"></div>
+    </fieldset>
+
+    <fieldset class="bloco">
+      <legend>Cores</legend>
+      <div class="chips" id="eCores"></div>
+      <p class="dica">Toque pra adicionar:</p>
+      <div class="chips prontas" id="eCoresProntas"></div>
+      <p class="dica">Outra cor, ou peça com 2–3 cores (vira bolinha partida):</p>
+      <div class="add-cor multi">
+        <input type="color" id="eCorHex" value="#C48C83" aria-label="1ª cor">
+        <input type="color" id="eCorHex2" value="#2B2B2B" aria-label="2ª cor" hidden>
+        <input type="color" id="eCorHex3" value="#F8F6F3" aria-label="3ª cor" hidden>
+        <button class="link" id="eMaisCor" type="button">+ 2ª cor</button>
+        <button class="link" id="eMenosCor" type="button" hidden aria-label="Tirar última cor">−</button>
+      </div>
+      <div class="add-cor">
+        <input id="eCorNome" placeholder="Nome (ex: Verde Água / Preto e Rosé)">
+        <button class="btn contorno" id="eAddCor" type="button">Adicionar</button>
+      </div>
+    </fieldset>
+
+    <fieldset class="bloco">
+      <legend>Tamanhos</legend>
+      <div class="chips" id="eTams"></div>
+      <p class="dica">Atalhos:</p>
+      <div class="chips prontas" id="eTamsProntos"></div>
+      <div class="add-cor">
+        <input id="eTamNome" placeholder="Outro tamanho (ex: 36, 38, 40)">
+        <button class="btn contorno" id="eAddTam" type="button">Adicionar</button>
+      </div>
+    </fieldset>
+
+    <fieldset class="bloco">
+      <legend>Estoque</legend>
+      <p class="dica">Quantas peças tem de cada cor e tamanho. Zero aparece como esgotado no site.</p>
+      <div class="matriz-wrap" id="eMatriz"></div>
+    </fieldset>
+
+    <fieldset class="bloco">
+      <legend>No site</legend>
+      <label class="check"><input type="checkbox" id="eAtivo" checked> Mostrar no site</label>
+      <label class="check"><input type="checkbox" id="eNovo"> Marcar como lançamento (selo "Novo")</label>
+      <label class="check"><input type="checkbox" id="eMaisVendido"> Mostrar em "Mais vendidos"</label>
+    </fieldset>
+
+    <button class="btn perigo contorno" id="eExcluir" type="button" hidden>Excluir produto</button>
+  </div>
+
+  <footer class="editor-rodape">
+    <p class="erro" id="eErro"></p>
+    <div class="botoes">
+      <button class="btn contorno" data-cancelar type="button">Cancelar</button>
+      <button class="btn" id="eSalvar" type="button">Salvar produto</button>
+    </div>
+  </footer>
+</section>
+
+<!-- ============ REGISTRAR VENDA ============ -->
+<section class="editor" id="editorVenda" hidden aria-labelledby="vTitulo">
+  <header class="editor-topo">
+    <button class="link" data-fechar-venda>← Voltar</button>
+    <h2 id="vTitulo">Registrar venda</h2>
+    <span></span>
+  </header>
+
+  <div class="editor-corpo">
+    <fieldset class="bloco">
+      <legend>Peças</legend>
+      <div id="vItens"></div>
+      <button class="btn contorno cheio" id="vAddPeca" type="button">+ Adicionar peça</button>
+      <p class="dica">Deu desconto? Muda o preço na hora de adicionar a peça.</p>
+    </fieldset>
+
+    <fieldset class="bloco">
+      <legend>Pagamento</legend>
+      <div class="chips formas" id="vFormas"></div>
+      <p class="dica" id="vDicaFiado" hidden>No fiado o dinheiro não entra no caixa agora. Entra quando o cliente pagar, pela aba Fiado.</p>
+    </fieldset>
+
+    <fieldset class="bloco">
+      <legend>Cliente</legend>
+      <p class="dica" id="vClienteDica">Opcional na venda à vista. Obrigatório no fiado.</p>
+      <div id="vClienteEscolhido"></div>
+      <div id="vClienteBuscar">
+        <input type="search" id="vClienteBusca" placeholder="Buscar pelo nome..." autocomplete="off">
+        <div class="sugestoes" id="vClienteSug"></div>
+        <button class="link destaque" id="vClienteNovo" type="button">+ Cadastrar cliente novo</button>
+      </div>
+    </fieldset>
+
+    <fieldset class="bloco">
+      <legend>Detalhes</legend>
+      <label class="campo"><span>Data da venda</span><input type="date" id="vData"></label>
+      <label class="campo"><span>Observação (opcional)</span><textarea id="vObs" rows="2" placeholder="Ex: vai buscar sábado"></textarea></label>
+    </fieldset>
+  </div>
+
+  <footer class="editor-rodape">
+    <div class="total-venda"><span>Total</span><b id="vTotal">R$ 0,00</b></div>
+    <p class="erro" id="vErro"></p>
+    <div class="botoes">
+      <button class="btn contorno" data-fechar-venda type="button">Cancelar</button>
+      <button class="btn" id="vSalvar" type="button">Registrar venda</button>
+    </div>
+  </footer>
+</section>
+
+<!-- ============ FICHA DO CLIENTE ============ -->
+<section class="editor" id="telaCliente" hidden aria-labelledby="cNome">
+  <header class="editor-topo">
+    <button class="link" data-fechar-cliente>← Voltar</button>
+    <h2 id="cNome"></h2>
+    <button class="link" id="cEditar">Editar</button>
+  </header>
+  <div class="editor-corpo">
+    <div class="bloco saldo-bloco">
+      <small id="cSaldoRotulo">Deve</small>
+      <b id="cSaldo"></b>
+      <small id="cInfo"></small>
+      <div class="botoes-saldo">
+        <button class="btn" id="cReceber">Receber pagamento</button>
+        <a class="btn whats" id="cCobrar" target="_blank" rel="noopener">Cobrar no WhatsApp</a>
+      </div>
+    </div>
+    <fieldset class="bloco">
+      <legend>Histórico</legend>
+      <div id="cHist"><p class="vazio">Carregando...</p></div>
+    </fieldset>
+  </div>
+</section>
+
+<!-- ============ JANELINHAS ============ -->
+<div class="veu" id="veu"></div>
+
+<!-- escolher peça pra venda -->
+<div class="modal" id="mPeca" role="dialog" aria-modal="true" aria-labelledby="mPecaTit" hidden>
+  <div class="modal-topo">
+    <button class="link" id="pVoltar" type="button" hidden>← Produtos</button>
+    <h3 id="mPecaTit">Escolher peça</h3>
+    <button class="fechar" data-fechar-modal aria-label="Fechar">×</button>
+  </div>
+  <div id="pPasso1">
+    <input type="search" id="pBusca" placeholder="Buscar produto..." autocomplete="off">
+    <div class="lista-mini" id="pLista"></div>
+  </div>
+  <div id="pPasso2" hidden>
+    <div class="peca-cab" id="pCab"></div>
+    <div class="grupo"><div class="rotulo">Cor</div><div class="opcoes" id="pCores"></div></div>
+    <div class="grupo"><div class="rotulo">Tamanho <small>(número = peças em estoque)</small></div><div class="opcoes" id="pTams"></div></div>
+    <div class="duas">
+      <div class="campo"><span>Quantidade</span>
+        <div class="stepper"><button type="button" id="pMenos" aria-label="Diminuir">−</button><b id="pQtd">1</b><button type="button" id="pMais" aria-label="Aumentar">+</button></div>
+      </div>
+      <label class="campo"><span>Preço cada (R$)</span><input id="pPreco" inputmode="decimal"></label>
+    </div>
+    <p class="erro" id="pErro"></p>
+    <button class="btn cheio" id="pAdd" type="button">Adicionar à venda</button>
+  </div>
+</div>
+
+<!-- cadastrar / editar cliente -->
+<div class="modal" id="mCliente" role="dialog" aria-modal="true" aria-labelledby="mClienteTit" hidden>
+  <div class="modal-topo"><span></span><h3 id="mClienteTit">Cliente novo</h3><button class="fechar" data-fechar-modal aria-label="Fechar">×</button></div>
+  <label class="campo"><span>Nome</span><input id="kNome" autocomplete="off" placeholder="Ex: Maria Souza"></label>
+  <label class="campo"><span>WhatsApp (com DDD)</span><input id="kTel" inputmode="tel" autocomplete="off" placeholder="(92) 99999-9999"></label>
+  <label class="campo"><span>Observação (opcional)</span><textarea id="kObs" rows="2" placeholder="Ex: paga todo dia 10"></textarea></label>
+  <p class="erro" id="kErro"></p>
+  <button class="btn cheio" id="kSalvar" type="button">Salvar cliente</button>
+  <button class="btn perigo contorno cheio" id="kExcluir" type="button" hidden>Excluir cliente</button>
+</div>
+
+<!-- receber pagamento de fiado -->
+<div class="modal" id="mReceber" role="dialog" aria-modal="true" aria-labelledby="mReceberTit" hidden>
+  <div class="modal-topo"><span></span><h3 id="mReceberTit">Receber pagamento</h3><button class="fechar" data-fechar-modal aria-label="Fechar">×</button></div>
+  <p class="dica" id="rDeve"></p>
+  <label class="campo"><span>Valor recebido (R$)</span><input id="rValor" inputmode="decimal"></label>
+  <div class="campo"><span>Forma</span><div class="chips formas" id="rFormas"></div></div>
+  <label class="campo"><span>Data</span><input type="date" id="rData"></label>
+  <label class="campo"><span>Observação (opcional)</span><input id="rObs" autocomplete="off"></label>
+  <p class="erro" id="rErro"></p>
+  <button class="btn cheio" id="rSalvar" type="button">Confirmar pagamento</button>
+</div>
+
+<!-- detalhe de uma venda -->
+<div class="modal" id="mVenda" role="dialog" aria-modal="true" aria-labelledby="mVendaTit" hidden>
+  <div class="modal-topo"><span></span><h3 id="mVendaTit">Venda</h3><button class="fechar" data-fechar-modal aria-label="Fechar">×</button></div>
+  <div id="dVenda"></div>
+  <button class="btn perigo contorno cheio" id="dCancelar" type="button">Cancelar venda e devolver peças ao estoque</button>
+</div>
+
+<!-- lançar entrada / saída no caixa -->
+<div class="modal" id="mLanc" role="dialog" aria-modal="true" aria-labelledby="mLancTit" hidden>
+  <div class="modal-topo"><span></span><h3 id="mLancTit">Nova saída</h3><button class="fechar" data-fechar-modal aria-label="Fechar">×</button></div>
+  <div class="chips formas tipo-lanc" id="lTipo">
+    <button type="button" class="chip forma" data-tipo="saida">Saída (gastei)</button>
+    <button type="button" class="chip forma" data-tipo="entrada">Entrada (recebi)</button>
+  </div>
+  <label class="campo"><span>Valor (R$)</span><input id="lValor" inputmode="decimal" placeholder="0,00"></label>
+  <div class="campo"><span>Categoria</span><div class="chips formas" id="lCats"></div></div>
+  <label class="campo" id="lOutraCampo" hidden><span>Qual categoria?</span><input id="lOutra" autocomplete="off" placeholder="Ex: Aluguel"></label>
+  <label class="campo"><span>Descrição (opcional)</span><input id="lDesc" autocomplete="off" placeholder="Ex: 20 leggings da Via Máfia"></label>
+  <label class="campo"><span>Data</span><input type="date" id="lData"></label>
+  <p class="erro" id="lErro"></p>
+  <button class="btn cheio" id="lSalvar" type="button">Salvar</button>
+  <button class="btn perigo contorno cheio" id="lExcluir" type="button" hidden>Excluir lançamento</button>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/dados.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/vendas.js"></script>
+<script src="js/financeiro.js"></script>
+</body>
+</html>
