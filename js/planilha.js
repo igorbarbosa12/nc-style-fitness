@@ -57,8 +57,14 @@ async function buscarTudo(tabela, colunas, ordens){
   }
 }
 
-/* ---------- datas: o Excel não tem fuso, então grava a hora de Santarém como ela é ---------- */
-const comHora = iso => { const d=new Date(iso); return new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(),d.getHours(),d.getMinutes())); };
+/* ---------- datas: o Excel não tem fuso, então grava a hora do Amazonas (loja em Nhamundá),
+   não importa de qual aparelho ou cidade a planilha for baixada ---------- */
+const FUSO_LOJA = "America/Manaus";
+const relogioLoja = new Intl.DateTimeFormat("en-US",{ timeZone:FUSO_LOJA, year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hourCycle:"h23" });
+const comHora = iso => {
+  const p=Object.fromEntries(relogioLoja.formatToParts(new Date(iso)).map(x=>[x.type,x.value]));
+  return new Date(Date.UTC(+p.year, p.month-1, +p.day, +p.hour, +p.minute));
+};
 const soDia   = s => { const [y,m,d]=String(s).slice(0,10).split("-").map(Number); return new Date(Date.UTC(y,m-1,d)); };
 const n = v => v==null ? null : Number(v);
 
@@ -142,7 +148,7 @@ async function baixarPlanilha(){
     const arquivo=new Blob([dados],{ type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     const a=document.createElement("a");
     a.href=URL.createObjectURL(arquivo);
-    a.download=`nc-style-fitness-copia-${new Date().toLocaleDateString("sv-SE")}.xlsx`;
+    a.download=`nc-style-fitness-copia-${new Date().toLocaleDateString("sv-SE",{ timeZone:FUSO_LOJA })}.xlsx`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href),60000);
 
