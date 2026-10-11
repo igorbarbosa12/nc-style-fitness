@@ -77,6 +77,7 @@ textarea{resize:vertical}
 .selo.baixo{background:#FBF0DC;color:var(--alerta)}
 .selo.zero{background:#F8E1DD;color:var(--perigo)}
 .selo.oculto{background:#EEE;color:#666}
+.selo.copia{background:#E3EDF6;color:#1F5F8B}
 
 /* ====== EDITOR ====== */
 .editor{position:fixed;inset:0;z-index:20;background:var(--areia);display:flex;flex-direction:column}
@@ -341,6 +342,7 @@ button.hist-item:hover{background:var(--areia)}
 .aviso-item:last-child{border-bottom:0}
 .aviso-item:hover{color:var(--rose-escuro)}
 .aviso-item .selo{margin:0;flex:0 0 auto}
+#copia .btn{margin-top:12px}
 
 /* =====================================================================
    PARTE 4 — CUSTO E LUCRO

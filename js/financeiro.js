@@ -242,6 +242,7 @@ async function carregarResumoGeral(){
   if(acabando.length) itens.push(`<button class="aviso-item" data-ir-aba="produtos"><span class="selo baixo">Acabando</span>${acabando.length===1?esc(acabando[0].nome):`${acabando.length} produtos com tamanho acabando`}</button>`);
   if(semCusto.length) itens.push(`<button class="aviso-item" data-ir-aba="produtos" data-filtro="semcusto"><span class="selo oculto">Sem custo</span>${semCusto.length===1?`${esc(semCusto[0].nome)} está sem custo`:`${semCusto.length} produtos sem custo cadastrado`}</button>`);
   devedores.forEach(c=>itens.push(`<button class="aviso-item" data-ficha="${c.id}"><span class="selo forma-fiado">Fiado</span>${esc(c.nome)} deve ${reais(c.saldo)}</button>`));
+  if(typeof precisaCopia==="function" && precisaCopia()) itens.push(`<button class="aviso-item" data-copia><span class="selo copia">Cópia</span>${ultimaCopia()?`Faz mais de ${DIAS_LEMBRETE} dias da última cópia de segurança: toque pra baixar`:"Baixe a primeira cópia de segurança da loja: toque aqui"}</button>`);
   $("#rsAtencao").innerHTML = itens.length ? itens.join("") : `<p class="dica">Tudo em ordem: nada esgotado e ninguém devendo. 🎉</p>`;
 }
 $("#rsMes").addEventListener("change",carregarResumoGeral);
