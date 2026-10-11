@@ -49,6 +49,7 @@ textarea{resize:vertical}
   position:sticky;top:0;z-index:5}
 .topo-logo{height:42px;width:auto}
 .topo-acoes{display:flex;gap:4px}
+.link.instalar{color:var(--rose-escuro);font-weight:600}
 
 /* ====== LISTA ====== */
 .conteudo{max-width:900px;margin:0 auto;padding:18px 16px 60px}

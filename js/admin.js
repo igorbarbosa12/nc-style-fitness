@@ -506,3 +506,24 @@ $("#eExcluir").onclick=async()=>{
 
 // espera todos os arquivos (inclusive vendas.js) carregarem antes de começar
 document.addEventListener("DOMContentLoaded", iniciar);
+
+/* ============================================================
+   PAINEL COMO APP (ícone na tela inicial do celular)
+   Android/computador: aparece o botão "Instalar app" no topo.
+   iPhone: Safari > Compartilhar > Adicionar à Tela de Início.
+   ============================================================ */
+if("serviceWorker" in navigator && location.protocol!=="file:"){
+  navigator.serviceWorker.register("sw-painel.js",{ scope:"/admin" }).catch(e=>console.warn("App do painel:",e));
+}
+let pedidoInstalar=null;
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault(); pedidoInstalar=e; $("#instalarApp").hidden=false;
+});
+$("#instalarApp").onclick=async ()=>{
+  if(!pedidoInstalar) return;
+  pedidoInstalar.prompt();
+  const { outcome }=await pedidoInstalar.userChoice;
+  pedidoInstalar=null; $("#instalarApp").hidden=true;
+  if(outcome==="accepted") toast("Pronto! O painel vai aparecer na tela inicial.");
+};
+window.addEventListener("appinstalled",()=>{ pedidoInstalar=null; $("#instalarApp").hidden=true; });

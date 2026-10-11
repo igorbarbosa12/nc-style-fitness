@@ -7,6 +7,10 @@
 <title>Painel | NC Style Fitness</title>
 <meta name="theme-color" content="#FDFBF9">
 <link rel="icon" href="img/monograma.svg" type="image/svg+xml">
+<!-- painel como app no celular -->
+<link rel="manifest" href="painel.webmanifest">
+<link rel="apple-touch-icon" href="img/app/icone-180.png">
+<meta name="apple-mobile-web-app-title" content="NC Painel">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
@@ -31,6 +35,7 @@
   <header class="topo">
     <img src="img/logo.svg" alt="NC Style Fitness" class="topo-logo">
     <div class="topo-acoes">
+      <button class="link instalar" id="instalarApp" type="button" hidden>Instalar app</button>
       <a href="index.html" target="_blank" class="link">Ver site</a>
       <button class="link" id="sair">Sair</button>
     </div>
