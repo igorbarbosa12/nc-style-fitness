@@ -16,13 +16,7 @@ const LOJA = {
   pagamento: "Pix, cartão de crédito e débito, e dinheiro",
   anos:      "3",        // anos de loja
   clientes:  "500+",     // clientes atendidas
-  demo:      true,       // true = mostra no rodapé que é site de demonstração
-
-  /* Banner "Grupo VIP" da página inicial:
-     ""                                 = não mostra o banner
-     "whatsapp"                         = o botão abre uma conversa pedindo pra entrar na lista VIP
-     "https://chat.whatsapp.com/xxxx"   = o botão leva direto pro grupo */
-  vip:       "whatsapp"
+  demo:      true        // true = mostra no rodapé que é site de demonstração
 };
 
 /* Mensagens da faixa do topo (vão alternando) */

@@ -713,13 +713,7 @@ async function iniciarLoja(){
   mostrarVista(); atualizarSacola(); varrerFotos();
 }
 
-/* ---------- grupo VIP e avaliações ---------- */
-if(LOJA.vip){
-  const grupo = /^https?:/.test(LOJA.vip);
-  $("#vipLink").href = grupo ? LOJA.vip : linkWhats("Oi! Quero entrar na lista VIP da NC Style Fitness pra receber as novidades e promoções.");
-  if(!grupo) $("#vipTitulo").textContent = "Entre na lista VIP";
-  $("#secVip").hidden = false;
-}
+/* ---------- avaliações ---------- */
 if(AVALIACOES.length){
   $("#avaliacoes").innerHTML = AVALIACOES.map(a => {
     const n = Math.max(0, Math.min(5, Math.round(a.nota || 0)));
