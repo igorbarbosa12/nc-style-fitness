@@ -53,23 +53,70 @@
   <!-- ===================== INÍCIO ===================== -->
   <div class="vista" id="vInicio">
 
-    <section class="hero" aria-label="Destaque">
-      <div class="hero-foto">
-        <img src="img/fotos/banner-1-celular.webp" alt="Modelo usando conjunto fitness rosé" width="1024" height="1536" fetchpriority="high">
-        <!-- vídeo leve (sem som) que entra por cima da foto depois que a página carrega -->
-        <video class="hero-video" id="heroVideo" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"
-          data-webm="video/hero.webm" data-mp4="video/hero.mp4"></video>
-        <button class="hero-pausa" id="heroPausa" aria-label="Pausar vídeo" hidden>
-          <svg class="i-pausa" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="7" y="5" width="3.5" height="14" rx="1"/><rect x="13.5" y="5" width="3.5" height="14" rx="1"/></svg>
-          <svg class="i-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10-6.5a1 1 0 0 0 0-1.7l-10-6.6A1 1 0 0 0 8 5.5z"/></svg>
-        </button>
-      </div>
-      <div class="hero-texto">
-        <h1>Do treino ao look casual</h1>
-        <p>Moda fitness feminina e masculina. Escolha as peças no site e finalize o pedido direto pelo WhatsApp.</p>
-        <div class="botoes">
-          <a class="btn btn-hero" href="#feminino">Ver feminino</a>
-          <a class="btn contorno btn-hero2" href="#masculino">Ver masculino</a>
+    <!-- ===== BANNERS DO TOPO (passam sozinhos; no celular dá pra arrastar) =====
+         Pra trocar um banner: mude a foto (img), a chamada, o título, o texto e o link do botão.
+         A foto pode ser em pé: no computador ela fica à direita e o texto à esquerda. -->
+    <section class="hero" aria-label="Destaques">
+      <div class="carrossel" id="carrossel" aria-roledescription="carrossel">
+        <div class="slides" id="slides">
+
+          <!-- banner 1 (com o vídeo leve por cima da foto) -->
+          <div class="slide ativo" role="group" aria-roledescription="banner" aria-label="1 de 3">
+            <div class="hero-foto">
+              <img src="img/fotos/banner-1-celular.webp" alt="Modelo usando conjunto fitness rosé" width="1024" height="1536" fetchpriority="high">
+              <video class="hero-video" id="heroVideo" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"
+                data-webm="video/hero.webm" data-mp4="video/hero.mp4"></video>
+            </div>
+            <div class="hero-texto">
+              <span class="chamada">Moda fitness</span>
+              <h1>Do treino ao look casual</h1>
+              <p>Moda fitness feminina e masculina. Escolha as peças no site e finalize o pedido direto pelo WhatsApp.</p>
+              <div class="botoes">
+                <a class="btn btn-hero" href="#feminino">Ver feminino</a>
+                <a class="btn contorno btn-hero2" href="#masculino">Ver masculino</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- banner 2 -->
+          <div class="slide" role="group" aria-roledescription="banner" aria-label="2 de 3">
+            <div class="hero-foto">
+              <img src="img/fotos/cat-feminino.webp" alt="Modelo usando conjunto fitness preto" width="800" height="1200" fetchpriority="low" decoding="async">
+            </div>
+            <div class="hero-texto">
+              <span class="chamada">Conjuntos</span>
+              <h2>Conjuntos pra treinar com estilo</h2>
+              <p>Leg, short e top em várias cores. Veja os tamanhos e peça pelo WhatsApp.</p>
+              <div class="botoes">
+                <a class="btn btn-hero" href="#feminino/Conjunto%20de%20Leg">Ver conjuntos</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- banner 3 -->
+          <div class="slide" role="group" aria-roledescription="banner" aria-label="3 de 3">
+            <div class="hero-foto">
+              <img src="img/fotos/cat-moda-praia.webp" alt="Biquíni caramelo sobre uma toalha" width="680" height="1020" fetchpriority="low" decoding="async">
+            </div>
+            <div class="hero-texto">
+              <span class="chamada">Moda praia</span>
+              <h2>Pro rio e pra praia</h2>
+              <p>Biquínis pra aproveitar o verão com conforto.</p>
+              <div class="botoes">
+                <a class="btn btn-hero" href="#praia">Ver moda praia</a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="car-controles">
+          <button class="car-seta" id="banAnt" type="button" aria-label="Banner anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <div class="car-pontos" id="banPontos"></div>
+          <button class="car-seta" id="banProx" type="button" aria-label="Próximo banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+          <button class="hero-pausa" id="heroPausa" type="button" aria-label="Pausar banners" hidden>
+            <svg class="i-pausa" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="7" y="5" width="3.5" height="14" rx="1"/><rect x="13.5" y="5" width="3.5" height="14" rx="1"/></svg>
+            <svg class="i-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10-6.5a1 1 0 0 0 0-1.7l-10-6.6A1 1 0 0 0 8 5.5z"/></svg>
+          </button>
         </div>
       </div>
       <ul class="confianca">
@@ -79,9 +126,10 @@
       </ul>
     </section>
 
-    <section class="secao wrap revela">
-      <h2 class="titulo">Escolha sua área</h2>
-      <div class="areas" id="areas"></div>
+    <!-- ===== NAVEGUE PELAS CATEGORIAS (fotos e links ficam em js/dados.js, CATEGORIAS_INICIO) ===== -->
+    <section class="secao wrap revela" id="secCategorias">
+      <h2 class="titulo centro">Navegue pelas categorias</h2>
+      <div class="mosaico" id="mosaico"></div>
     </section>
 
     <section class="secao revela" id="secMaisVendidos">
@@ -131,6 +179,14 @@
       <div class="trilho" id="trilhoNovos"></div>
     </section>
 
+    <section class="secao revela" id="secConjuntos" hidden>
+      <div class="cab-secao wrap">
+        <h2 class="titulo">Conjuntos</h2>
+        <a class="link" href="#feminino">Ver tudo</a>
+      </div>
+      <div class="trilho" id="trilhoConjuntos"></div>
+    </section>
+
     <section class="wrap revela">
       <div class="ele">
         <div class="ele-texto">
@@ -143,6 +199,31 @@
           <img src="img/fotos/banner-3-celular.webp" alt="Modelo com camisa preta e short cinza" width="1024" height="1536" loading="lazy">
         </picture>
       </div>
+    </section>
+
+    <!-- ===== GRUPO VIP NO WHATSAPP (liga e desliga em js/dados.js, LOJA.vip) ===== -->
+    <section class="wrap revela" id="secVip" hidden>
+      <div class="vip">
+        <div class="vip-texto">
+          <span class="chamada">Novidades primeiro</span>
+          <h2 id="vipTitulo">Participe do grupo VIP</h2>
+          <p>Lançamentos e promoções chegam primeiro pra você.</p>
+          <a class="btn btn-vip" id="vipLink" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7L4 20z"/></svg>
+            Quero participar</a>
+        </div>
+        <div class="vip-foto">
+          <img src="img/fotos/prod-macacao-preto.webp" alt="" width="800" height="1200" loading="lazy" decoding="async">
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== AVALIAÇÕES (só aparece quando tiver avaliações reais em js/dados.js) ===== -->
+    <section class="secao revela" id="secAvaliacoes" hidden>
+      <div class="cab-secao wrap">
+        <h2 class="titulo">Quem comprou, recomenda</h2>
+      </div>
+      <div class="avaliacoes" id="avaliacoes"></div>
     </section>
 
     <section class="insta revela">

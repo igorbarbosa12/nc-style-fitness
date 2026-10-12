@@ -16,7 +16,13 @@ const LOJA = {
   pagamento: "Pix, cartão de crédito e débito, e dinheiro",
   anos:      "3",        // anos de loja
   clientes:  "500+",     // clientes atendidas
-  demo:      true        // true = mostra no rodapé que é site de demonstração
+  demo:      true,       // true = mostra no rodapé que é site de demonstração
+
+  /* Banner "Grupo VIP" da página inicial:
+     ""                                 = não mostra o banner
+     "whatsapp"                         = o botão abre uma conversa pedindo pra entrar na lista VIP
+     "https://chat.whatsapp.com/xxxx"   = o botão leva direto pro grupo */
+  vip:       "whatsapp"
 };
 
 /* Mensagens da faixa do topo (vão alternando) */
@@ -26,8 +32,7 @@ const AVISOS = [
   "Do treino ao look casual"
 ];
 
-/* Áreas da loja e as categorias de cada uma.
-   foto: imagem do card "Escolha sua área". O painel também usa essa lista. */
+/* Áreas da loja e as categorias de cada uma. O painel também usa essa lista. */
 const GRUPOS = {
   feminino:   { nome:"Feminino",   foto:"img/fotos/cat-feminino.webp",
                 cats:["Conjunto de Leg","Conjunto de Short","Macaquinho","Macacão","Cropped","Blusa Feminina","Blusa de Tule"] },
@@ -38,6 +43,26 @@ const GRUPOS = {
   acessorios: { nome:"Acessórios", foto:"img/fotos/cat-acessorios.webp",
                 cats:["Garrafas","Meias","Boné"] }
 };
+
+/* "Navegue pelas categorias" na página inicial.
+   Com 6 itens vira mosaico (o 1º e o 4º ficam altos). Item sem peça no site some sozinho.
+   link: área (feminino, masculino, praia, acessorios) ou "área/Categoria" (igual à lista acima)
+   pos:  que parte da foto aparece no quadro ("50% 20%" = meio, mais pra cima) */
+const CATEGORIAS_INICIO = [
+  { nome:"Conjuntos de leg",   link:"feminino/Conjunto de Leg",   foto:"img/fotos/prod-conjunto-leg-rose.webp",   pos:"50% 30%" },
+  { nome:"Conjuntos de short", link:"feminino/Conjunto de Short", foto:"img/fotos/prod-conjunto-short-oliva.webp", pos:"50% 62%" },
+  { nome:"Cropped",            link:"feminino/Cropped",           foto:"img/fotos/prod-cropped-faixa-rose.webp",  pos:"50% 30%" },
+  { nome:"Macaquinhos",        link:"feminino/Macaquinho",        foto:"img/fotos/prod-macaquinho-terracota.webp", pos:"50% 30%" },
+  { nome:"Masculino",          link:"masculino",                  foto:"img/fotos/cat-masculino.webp",            pos:"50% 22%" },
+  { nome:"Acessórios",         link:"acessorios",                 foto:"img/fotos/cat-acessorios.webp",           pos:"50% 50%" }
+];
+
+/* Avaliações de clientes (a seção só aparece quando tiver pelo menos uma).
+   Só avaliação de verdade, com autorização da cliente (ex.: print do WhatsApp).
+   nota é opcional (1 a 5). Exemplo:
+   { nome:"Ana Paula", cidade:"Nhamundá", texto:"Amei o conjunto, o tecido é ótimo!", nota:5 }, */
+const AVALIACOES = [
+];
 
 /* Até quantas peças no estoque aparece o selo "Últimas peças" */
 const POUCAS_PECAS = 3;

@@ -103,13 +103,29 @@ $("#numeros").innerHTML =
   (LOJA.anos ? `<div><b>${esc(LOJA.anos)}</b><span>anos de loja</span></div>` : "") +
   (LOJA.clientes ? `<div><b>${esc(LOJA.clientes)}</b><span>clientes atendidas</span></div>` : "");
 
-/* ---------- áreas e menus ---------- */
-$("#areas").innerHTML = Object.entries(GRUPOS).map(([k,g]) => `
-  <a class="area-card" href="#${k}">
-    <div class="foto">${g.foto ? foto(g.foto, "") : ""}
-      <div class="area-rotulo"><b>${esc(g.nome)}</b><span>Ver peças <i aria-hidden="true">→</i></span></div>
-    </div>
-  </a>`).join("");
+/* ---------- navegue pelas categorias (mosaico) ----------
+   antes de carregar as peças mostra todas; depois some o que não tem peça */
+const hashDe = link => { const [g, cat] = link.split("/"); return "#" + g + (cat ? "/" + encodeURIComponent(cat) : ""); };
+function temPecas(link){
+  const [g, cat] = link.split("/");
+  if(!GRUPOS[g]) return false;
+  return PRODUTOS.some(p => !p.semEstoque && (cat ? p.cat === cat : GRUPOS[g].cats.includes(p.cat)));
+}
+function renderCategorias(){
+  const lista = carregado ? CATEGORIAS_INICIO.filter(c => temPecas(c.link)) : CATEGORIAS_INICIO;
+  const mosaico = lista.length === 6;
+  const el = $("#mosaico");
+  el.classList.toggle("simples", !mosaico);
+  el.style.setProperty("--n", Math.min(lista.length, 4));
+  el.innerHTML = lista.map((c,i) => `
+    <a class="cat-card${mosaico && (i === 0 || i === 3) ? " alto" : ""}" href="${esc(hashDe(c.link))}">
+      <img class="fade" src="${esc(c.foto)}" alt="" loading="lazy" decoding="async" style="object-position:${esc(c.pos || "50% 25%")}">
+      <span class="cat-rotulo"><b>${esc(c.nome)}</b><span>Ver tudo</span></span>
+    </a>`).join("");
+  $("#secCategorias").hidden = !lista.length;
+}
+
+/* ---------- menus ---------- */
 $("#menuDesk").innerHTML = Object.entries(GRUPOS).map(([k,g]) => `<a href="#${k}" data-area="${k}">${esc(g.nome)}</a>`).join("")
   + `<a href="#todos" data-area="todos">Ver tudo</a>`;
 
@@ -515,13 +531,70 @@ $("#enviar").onclick = () => {
   window.open(linkWhats(msg), "_blank", "noopener");
 };
 
-/* ---------- vídeo do destaque ----------
+/* ---------- banners do destaque ----------
+   Passam sozinhos a cada 6,5 s. Param quando: a pessoa aperta pausar, passa o mouse
+   ou usa o teclado em cima, o destaque sai da tela, ou ela pediu menos movimento. */
+const trilhoBan = $("#slides"), slides = $$("#slides .slide"), pausa = $("#heroPausa"), video = $("#heroVideo");
+const autoBan = !reduz && slides.length > 1;
+let iBan = 0, tBan = null, banParado = false, banEmCima = false, banFoco = false, heroNaTela = true;
+$("#banPontos").innerHTML = slides.map((s,i) =>
+  `<button class="car-ponto" type="button" aria-label="Banner ${i+1} de ${slides.length}" aria-current="${i === 0}"></button>`).join("");
+$$(".car-controles").forEach(c => c.hidden = slides.length < 2);
+function marcarBan(i){
+  iBan = i;
+  slides.forEach((s,k) => { s.inert = k !== i; s.classList.toggle("ativo", k === i); });
+  $$(".car-ponto").forEach((b,k) => b.setAttribute("aria-current", k === i));
+  i === 0 ? tocar() : video?.pause();
+  agendarBan();
+}
+function irBan(i){
+  i = (i + slides.length) % slides.length;
+  trilhoBan.scrollTo({ left: i * trilhoBan.clientWidth, behavior: reduz ? "auto" : "smooth" });
+}
+function agendarBan(){
+  clearTimeout(tBan);
+  if(!autoBan || banParado || banEmCima || banFoco || !heroNaTela || document.hidden || document.body.dataset.vista !== "inicio") return;
+  tBan = setTimeout(() => irBan(iBan + 1), 6500);
+}
+let banPendente = false;
+trilhoBan.addEventListener("scroll", () => {
+  if(banPendente) return; banPendente = true;
+  requestAnimationFrame(() => {
+    banPendente = false;
+    const i = Math.round(trilhoBan.scrollLeft / (trilhoBan.clientWidth || 1));
+    if(i !== iBan && slides[i]) marcarBan(i);
+  });
+}, { passive:true });
+$("#banAnt").onclick = () => irBan(iBan - 1);
+$("#banProx").onclick = () => irBan(iBan + 1);
+$("#banPontos").addEventListener("click", e => { const b = e.target.closest(".car-ponto"); if(b) irBan($$(".car-ponto").indexOf(b)); });
+const carrossel = $("#carrossel");
+carrossel.addEventListener("pointerenter", e => { if(e.pointerType === "mouse"){ banEmCima = true; agendarBan(); } });
+carrossel.addEventListener("pointerleave", e => { if(e.pointerType === "mouse"){ banEmCima = false; agendarBan(); } });
+const focoVisivel = el => { try { return el.matches(":focus-visible"); } catch { return true; } };
+carrossel.addEventListener("focusin", e => { if(focoVisivel(e.target)){ banFoco = true; agendarBan(); } });   // teclado em cima: para
+carrossel.addEventListener("focusout", e => { if(!carrossel.contains(e.relatedTarget)){ banFoco = false; agendarBan(); } });
+if("IntersectionObserver" in window)
+  new IntersectionObserver(([e]) => { heroNaTela = e.isIntersecting; heroNaTela ? tocar() : video?.pause(); agendarBan(); }).observe(carrossel);
+document.addEventListener("visibilitychange", () => { document.hidden ? video?.pause() : tocar(); agendarBan(); });
+slides.forEach((s,k) => s.inert = k !== 0);
+
+/* um botão só pausa os banners e o vídeo */
+pausa.hidden = !autoBan;
+pausa.onclick = () => {
+  banParado = !banParado;
+  if(banParado){ video?.pause(); clearTimeout(tBan); } else { tocar(); agendarBan(); }
+  pausa.classList.toggle("parado", banParado);
+  pausa.setAttribute("aria-label", banParado ? "Continuar banners" : "Pausar banners");
+};
+
+/* ---------- vídeo do primeiro banner ----------
    Só baixa depois que a página carregou, e não baixa em internet fraca,
    no modo economia de dados ou pra quem pediu menos movimento. */
-const video = $("#heroVideo"), pausa = $("#heroPausa");
-let heroNaTela = true;
 const internetFraca = () => { const c = navigator.connection; return !!(c && (c.saveData || /2g$/.test(c.effectiveType || ""))); };
-const tocar = () => { if(video.querySelector("source") && heroNaTela && !document.hidden && !video.dataset.pausado) video.play().catch(() => {}); };
+function tocar(){
+  if(video && video.querySelector("source") && heroNaTela && iBan === 0 && !document.hidden && !banParado) video.play().catch(() => {});
+}
 function iniciarVideo(){
   if(!video || reduz || internetFraca()) return;
   video.innerHTML = `<source src="${video.dataset.webm}" type="video/webm"><source src="${video.dataset.mp4}" type="video/mp4">`;
@@ -529,19 +602,10 @@ function iniciarVideo(){
   video.load(); tocar();
 }
 if(video){
-  // pausa quando o destaque sai da tela (economiza bateria) e volta quando aparece
-  if("IntersectionObserver" in window)
-    new IntersectionObserver(([e]) => { heroNaTela = e.isIntersecting; heroNaTela ? tocar() : video.pause(); }).observe(video);
-  document.addEventListener("visibilitychange", () => document.hidden ? video.pause() : tocar());
-  pausa.onclick = () => {
-    const parar = !video.dataset.pausado;
-    if(parar){ video.dataset.pausado = "1"; video.pause(); } else { delete video.dataset.pausado; tocar(); }
-    pausa.classList.toggle("parado", parar);
-    pausa.setAttribute("aria-label", parar ? "Continuar vídeo" : "Pausar vídeo");
-  };
   if(document.readyState === "complete") setTimeout(iniciarVideo, 300);
   else addEventListener("load", () => setTimeout(iniciarVideo, 300));
 }
+agendarBan();
 
 /* ---------- números contando quando aparecem ---------- */
 function contar(el){
@@ -611,6 +675,10 @@ function renderInicio(){
   $("#trilhoNovos").innerHTML = novos.map(cardHTML).join("");
   renderVideos();
   $("#secNovos").hidden = !novos.length;
+  const conjuntos = PRODUTOS.filter(p => /^conjunto/i.test(p.cat) && !p.semEstoque);
+  $("#trilhoConjuntos").innerHTML = conjuntos.map(cardHTML).join("");
+  $("#secConjuntos").hidden = !conjuntos.length;
+  renderCategorias();
   // o botão da foto "Do treino pra rua" leva pra peça que aparece nela
   const look = PRODUTOS.find(p => p.fotos.includes($("#edFoto").getAttribute("src")));
   if(look){
@@ -645,6 +713,26 @@ async function iniciarLoja(){
   mostrarVista(); atualizarSacola(); varrerFotos();
 }
 
+/* ---------- grupo VIP e avaliações ---------- */
+if(LOJA.vip){
+  const grupo = /^https?:/.test(LOJA.vip);
+  $("#vipLink").href = grupo ? LOJA.vip : linkWhats("Oi! Quero entrar na lista VIP da NC Style Fitness pra receber as novidades e promoções.");
+  if(!grupo) $("#vipTitulo").textContent = "Entre na lista VIP";
+  $("#secVip").hidden = false;
+}
+if(AVALIACOES.length){
+  $("#avaliacoes").innerHTML = AVALIACOES.map(a => {
+    const n = Math.max(0, Math.min(5, Math.round(a.nota || 0)));
+    return `<figure class="aval">
+      ${n ? `<span class="estrelas" role="img" aria-label="Nota ${n} de 5">${"★".repeat(n)}${"☆".repeat(5-n)}</span>` : ""}
+      <blockquote>${esc(a.texto)}</blockquote>
+      <figcaption><b>${esc(a.nome)}</b>${a.cidade ? ` · ${esc(a.cidade)}` : ""}</figcaption>
+    </figure>`;
+  }).join("");
+  $("#secAvaliacoes").hidden = false;
+}
+
+renderCategorias();
 $("#trilhoMais").innerHTML = esqueletos(4);
 $("#trilhoNovos").innerHTML = esqueletos(4);
 renderMenu(); mostrarVista(); atualizarSacola(); varrerFotos();
