@@ -12,11 +12,11 @@ const INSTAGRAM = "https://instagram.com/nc_stylefitness";
 /* Informações do rodapé e da faixa de números.
    Deixe "" (vazio) pra esconder o que não quiser mostrar. */
 const LOJA = {
-  horario:   "Segunda a sábado, das 9h às 19h",
+  horario:   "",
   pagamento: "Pix, cartão de crédito e débito, e dinheiro",
-  anos:      "3",        // anos de loja
-  clientes:  "500+",     // clientes atendidas
-  demo:      true        // true = mostra no rodapé que é site de demonstração
+  anos:      "",         // anos de loja
+  clientes:  "",         // clientes atendidas
+  demo:      false       // true = mostra no rodapé que é site de demonstração
 };
 
 /* Mensagens da faixa do topo (vão alternando) */
