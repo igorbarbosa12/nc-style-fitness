@@ -650,13 +650,21 @@ function videoCardHTML(p){
     <span class="vcard-info"><span>${esc(p.nome)}</span><b>${p.precos ? "a partir de " : ""}${reais(menorPreco(p))}</b></span>
   </a>`;
 }
+/* vídeo da loja (dados.js, VIDEOS_INICIO): leva pra categoria em vez da peça */
+const videoLojaHTML = v => `<a class="vcard" href="${esc(hashDe(v.link))}">
+    <video muted loop playsinline preload="none" poster="${esc(v.capa || "")}" data-src="${esc(v.src)}" aria-hidden="true"></video>
+    <span class="vcard-play" aria-hidden="true">${ICONE_PLAY}</span>
+    <span class="vcard-info"><span>${esc(v.titulo)}</span><b>Ver peças</b></span>
+  </a>`;
 let ioVideos = null;
 function renderVideos(){
   const lista = PRODUTOS.filter(p => p.video && !p.semEstoque);
-  $("#secVideos").hidden = !lista.length;
-  $("#trilhoVideos").innerHTML = lista.map(videoCardHTML).join("");
-  $("#trilhoVideos").classList.toggle("poucos", lista.length < 3);
-  if(!lista.length || reduz || internetFraca() || !("IntersectionObserver" in window)) return;
+  const daLoja = typeof VIDEOS_INICIO !== "undefined" ? VIDEOS_INICIO.filter(v => v.src && (!carregado || temPecas(v.link))) : [];
+  const total = lista.length + daLoja.length;
+  $("#secVideos").hidden = !total;
+  $("#trilhoVideos").innerHTML = lista.map(videoCardHTML).join("") + daLoja.map(videoLojaHTML).join("");
+  $("#trilhoVideos").classList.toggle("poucos", total < 3);
+  if(!total || reduz || internetFraca() || !("IntersectionObserver" in window)) return;
   ioVideos?.disconnect();
   ioVideos = new IntersectionObserver(es => es.forEach(e => {
     const v = e.target;

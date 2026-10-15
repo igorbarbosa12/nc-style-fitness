@@ -53,6 +53,16 @@ const CATEGORIAS_INICIO = [
   { nome:"Acessórios",         link:"acessorios",                 pos:"50% 50%" }
 ];
 
+/* "Looks em movimento" na página inicial: vídeos da loja (fora os das peças).
+   Os vídeos que você coloca em cada peça pelo painel aparecem primeiro, com o preço.
+   src: vídeo .mp4 (leve: uns 10 s, sem som)   capa: imagem antes de tocar
+   link: área ou "área/Categoria" (igual à lista acima) */
+const VIDEOS_INICIO = [
+  { titulo:"Macacão com jaqueta",  src:"video/look-1.mp4", capa:"video/look-1.webp", link:"feminino/Macacão" },
+  { titulo:"Conjuntos no treino",  src:"video/look-2.mp4", capa:"video/look-2.webp", link:"feminino/Conjunto de Short" },
+  { titulo:"Conjunto short preto", src:"video/look-3.mp4", capa:"video/look-3.webp", link:"feminino/Conjunto de Short" }
+];
+
 /* Avaliações de clientes (a seção só aparece quando tiver pelo menos uma).
    Só avaliação de verdade, com autorização da cliente (ex.: print do WhatsApp).
    nota é opcional (1 a 5). Exemplo:
