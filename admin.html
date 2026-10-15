@@ -68,6 +68,11 @@
       <button class="btn" id="baixarPlanilha" type="button">Baixar planilha</button>
       <p class="dica" id="planilhaInfo"></p>
     </section>
+    <section class="cartao" id="conta">
+      <h2>Sua conta</h2>
+      <p class="dica">Entrando como <b id="contaEmail"></b></p>
+      <button class="btn contorno" id="abrirSenha" type="button">Trocar senha</button>
+    </section>
   </main>
 
   <!-- ============ PRODUTOS ============ -->
@@ -187,7 +192,7 @@
 
     <fieldset class="bloco">
       <legend>Vídeo (opcional)</legend>
-      <p class="dica">Um vídeo curto da peça no corpo, de até 15 segundos. Aparece na página da peça e em "Looks em movimento". O painel diminui o vídeo e tira o som antes de enviar.</p>
+      <p class="dica">Um vídeo curto da peça no corpo, de até 15 segundos. Aparece na página da peça e em "Veja no corpo", na página inicial. O painel diminui o vídeo e tira o som antes de enviar.</p>
       <div id="eVideo"></div>
       <label class="btn contorno subir">
         <input type="file" id="eVideoArquivo" accept="video/*" hidden>
@@ -385,6 +390,20 @@
   <p class="erro" id="kErro"></p>
   <button class="btn cheio" id="kSalvar" type="button">Salvar cliente</button>
   <button class="btn perigo contorno cheio" id="kExcluir" type="button" hidden>Excluir cliente</button>
+</div>
+
+<!-- trocar a própria senha -->
+<div class="modal" id="mSenha" role="dialog" aria-modal="true" aria-labelledby="mSenhaTit" hidden>
+  <div class="modal-topo"><span></span><h3 id="mSenhaTit">Trocar senha</h3><button class="fechar" data-fechar-modal aria-label="Fechar">×</button></div>
+  <form id="formSenha" novalidate>
+    <input type="email" id="tsUsuario" autocomplete="username" readonly hidden>
+    <label class="campo"><span>Senha nova</span><input type="password" id="tsNova" autocomplete="new-password"></label>
+    <label class="campo"><span>Repita a senha nova</span><input type="password" id="tsConfirma" autocomplete="new-password"></label>
+    <label class="ver-senha"><input type="checkbox" id="tsMostrar"> Mostrar senha</label>
+    <p class="dica">Pelo menos 10 caracteres. Dica: 3 palavras soltas + um número + um símbolo (ex.: palavra-palavra-palavra-12!). Não use data de aniversário nem nome da loja.</p>
+    <p class="erro" id="tsErro"></p>
+    <button class="btn cheio" id="tsSalvar" type="submit">Salvar senha nova</button>
+  </form>
 </div>
 
 <!-- receber pagamento de fiado -->

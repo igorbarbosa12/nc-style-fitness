@@ -68,10 +68,39 @@ async function entrarNoPainel(){
   const { data:ehAdmin, error } = await sb.rpc("is_admin");
   if(error || !ehAdmin){ await sb.auth.signOut(); mostrarLogin("Esse usuário não tem acesso ao painel."); return; }
   $("#telaLogin").hidden=true; $("#telaPainel").hidden=false;
+  sb.auth.getUser().then(({ data })=>{ const e=data?.user?.email||""; $("#contaEmail").textContent=e; $("#tsUsuario").value=e; });
   carregarProdutos();
   iniciarAbas();   // vendas.js
 }
 $("#sair").onclick = async ()=>{ await sb.auth.signOut(); location.reload(); };
+
+/* ---------- trocar a própria senha (fica no Resumo, em "Sua conta") ---------- */
+function erroSenha(e){
+  const c=e.code||"", m=e.message||String(e);
+  if(c==="same_password" || /different from the old/i.test(m)) return "A senha nova precisa ser diferente da atual.";
+  if(c==="weak_password" || /weak|at least/i.test(m)) return "Senha fraca. Use pelo menos 10 caracteres, misturando letras, números e símbolo.";
+  if(c==="reauthentication_needed" || /reauthenticat/i.test(m)) return "Por segurança, saia do painel, entre de novo e troque a senha logo em seguida.";
+  if(/session/i.test(m)) return "Sua entrada expirou. Saia, entre de novo e troque a senha.";
+  return "Não deu pra trocar a senha: "+m;
+}
+$("#abrirSenha").onclick = ()=>{
+  $("#formSenha").reset(); $("#tsErro").textContent="";
+  ["#tsNova","#tsConfirma"].forEach(s=>$(s).type="password");
+  abrirModal("#mSenha"); setTimeout(()=>$("#tsNova").focus(),60);
+};
+$("#tsMostrar").onchange = e => ["#tsNova","#tsConfirma"].forEach(s=>$(s).type = e.target.checked ? "text" : "password");
+$("#formSenha").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const nova=$("#tsNova").value, conf=$("#tsConfirma").value, erro=$("#tsErro");
+  erro.textContent="";
+  if(nova.length<10){ erro.textContent="A senha precisa ter pelo menos 10 caracteres."; return; }
+  if(nova!==conf){ erro.textContent="As duas senhas não estão iguais."; return; }
+  const b=$("#tsSalvar"); b.disabled=true; b.textContent="Salvando...";
+  const { error } = await sb.auth.updateUser({ password:nova });
+  b.disabled=false; b.textContent="Salvar senha nova";
+  if(error){ erro.textContent=erroSenha(error); return; }
+  fecharModal(); toast("Senha trocada! Da próxima vez, entre com a senha nova.");
+});
 
 /* ============================================================
    LISTA DE PRODUTOS

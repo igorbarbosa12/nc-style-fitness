@@ -12,11 +12,11 @@ const INSTAGRAM = "https://instagram.com/nc_stylefitness";
 /* Informações do rodapé e da faixa de números.
    Deixe "" (vazio) pra esconder o que não quiser mostrar. */
 const LOJA = {
-  horario:   "Segunda a sábado, das 9h às 19h",
+  horario:   "",
   pagamento: "Pix, cartão de crédito e débito, e dinheiro",
-  anos:      "3",        // anos de loja
-  clientes:  "500+",     // clientes atendidas
-  demo:      true        // true = mostra no rodapé que é site de demonstração
+  anos:      "",         // anos de loja
+  clientes:  "",         // clientes atendidas
+  demo:      false       // true = mostra no rodapé que é site de demonstração
 };
 
 /* Mensagens da faixa do topo (vão alternando) */
@@ -26,8 +26,7 @@ const AVISOS = [
   "Do treino ao look casual"
 ];
 
-/* Áreas da loja e as categorias de cada uma.
-   foto: imagem do card "Escolha sua área". O painel também usa essa lista. */
+/* Áreas da loja e as categorias de cada uma. O painel também usa essa lista. */
 const GRUPOS = {
   feminino:   { nome:"Feminino",   foto:"img/fotos/cat-feminino.webp",
                 cats:["Conjunto de Leg","Conjunto de Short","Macaquinho","Macacão","Cropped","Blusa Feminina","Blusa de Tule"] },
@@ -38,6 +37,38 @@ const GRUPOS = {
   acessorios: { nome:"Acessórios", foto:"img/fotos/cat-acessorios.webp",
                 cats:["Garrafas","Meias","Boné"] }
 };
+
+/* "Navegue pelas categorias" na página inicial.
+   Com 6 itens vira mosaico (o 1º e o 4º ficam altos). Item sem peça no site some sozinho.
+   A foto de cada quadro é a capa da peça mais nova daquela categoria (muda sozinha).
+   foto: opcional, pra fixar uma foto no quadro em vez de usar a das peças
+   link: área (feminino, masculino, praia, acessorios) ou "área/Categoria" (igual à lista acima)
+   pos:  que parte da foto aparece no quadro ("50% 20%" = meio, mais pra cima) */
+const CATEGORIAS_INICIO = [
+  { nome:"Conjuntos de leg",   link:"feminino/Conjunto de Leg",   pos:"50% 30%" },
+  { nome:"Conjuntos de short", link:"feminino/Conjunto de Short", pos:"50% 62%" },
+  { nome:"Cropped",            link:"feminino/Cropped",           pos:"50% 30%" },
+  { nome:"Macaquinhos",        link:"feminino/Macaquinho",        pos:"50% 30%" },
+  { nome:"Masculino",          link:"masculino",                  pos:"50% 22%", foto:"img/fotos/masculino.webp" },
+  { nome:"Acessórios",         link:"acessorios",                 pos:"50% 50%" }
+];
+
+/* "Veja no corpo" na página inicial: vídeos da loja (fora os das peças).
+   Os vídeos que você coloca em cada peça pelo painel aparecem primeiro, com o preço.
+   src: vídeo .mp4 (leve: uns 10 s, sem som)   capa: imagem antes de tocar
+   link: área ou "área/Categoria" (igual à lista acima) */
+const VIDEOS_INICIO = [
+  { titulo:"Macacão com jaqueta",  src:"video/look-1.mp4", capa:"video/look-1.webp", link:"feminino/Macacão" },
+  { titulo:"Conjuntos no treino",  src:"video/look-2.mp4", capa:"video/look-2.webp", link:"feminino/Conjunto de Short" },
+  { titulo:"Conjunto short preto", src:"video/look-3.mp4", capa:"video/look-3.webp", link:"feminino/Conjunto de Short" }
+];
+
+/* Avaliações de clientes (a seção só aparece quando tiver pelo menos uma).
+   Só avaliação de verdade, com autorização da cliente (ex.: print do WhatsApp).
+   nota é opcional (1 a 5). Exemplo:
+   { nome:"Ana Paula", cidade:"Nhamundá", texto:"Amei o conjunto, o tecido é ótimo!", nota:5 }, */
+const AVALIACOES = [
+];
 
 /* Até quantas peças no estoque aparece o selo "Últimas peças" */
 const POUCAS_PECAS = 3;
