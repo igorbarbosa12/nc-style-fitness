@@ -535,11 +535,12 @@ $("#enviar").onclick = () => {
 };
 
 /* ---------- banners do destaque ----------
-   Passam sozinhos a cada 6,5 s. Param quando: a pessoa aperta pausar, passa o mouse
-   ou usa o teclado em cima, o destaque sai da tela, ou ela pediu menos movimento. */
+   Passam sozinhos a cada 6,5 s, sem precisar arrastar nem clicar. Só param quando a pessoa
+   aperta pausar, quando navega pelo teclado em cima deles ou quando o destaque sai da tela.
+   Pra quem pediu menos movimento no celular/computador, troca sem a animação de deslizar. */
 const trilhoBan = $("#slides"), slides = $$("#slides .slide"), pausa = $("#heroPausa"), video = $("#heroVideo");
-const autoBan = !reduz && slides.length > 1;
-let iBan = 0, tBan = null, banParado = false, banEmCima = false, banFoco = false, heroNaTela = true;
+const autoBan = slides.length > 1;
+let iBan = 0, tBan = null, banParado = false, banFoco = false, heroNaTela = true;
 $("#banPontos").innerHTML = slides.map((s,i) =>
   `<button class="car-ponto" type="button" aria-label="Banner ${i+1} de ${slides.length}" aria-current="${i === 0}"></button>`).join("");
 $$(".car-controles").forEach(c => c.hidden = slides.length < 2);
@@ -556,7 +557,7 @@ function irBan(i){
 }
 function agendarBan(){
   clearTimeout(tBan);
-  if(!autoBan || banParado || banEmCima || banFoco || !heroNaTela || document.hidden || document.body.dataset.vista !== "inicio") return;
+  if(!autoBan || banParado || banFoco || !heroNaTela || document.hidden || document.body.dataset.vista !== "inicio") return;
   tBan = setTimeout(() => irBan(iBan + 1), 6500);
 }
 let banPendente = false;
@@ -572,8 +573,6 @@ $("#banAnt").onclick = () => irBan(iBan - 1);
 $("#banProx").onclick = () => irBan(iBan + 1);
 $("#banPontos").addEventListener("click", e => { const b = e.target.closest(".car-ponto"); if(b) irBan($$(".car-ponto").indexOf(b)); });
 const carrossel = $("#carrossel");
-carrossel.addEventListener("pointerenter", e => { if(e.pointerType === "mouse"){ banEmCima = true; agendarBan(); } });
-carrossel.addEventListener("pointerleave", e => { if(e.pointerType === "mouse"){ banEmCima = false; agendarBan(); } });
 const focoVisivel = el => { try { return el.matches(":focus-visible"); } catch { return true; } };
 carrossel.addEventListener("focusin", e => { if(focoVisivel(e.target)){ banFoco = true; agendarBan(); } });   // teclado em cima: para
 carrossel.addEventListener("focusout", e => { if(!carrossel.contains(e.relatedTarget)){ banFoco = false; agendarBan(); } });
