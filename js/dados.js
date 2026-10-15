@@ -53,7 +53,7 @@ const CATEGORIAS_INICIO = [
   { nome:"Acessórios",         link:"acessorios",                 pos:"50% 50%" }
 ];
 
-/* "Looks em movimento" na página inicial: vídeos da loja (fora os das peças).
+/* "Veja no corpo" na página inicial: vídeos da loja (fora os das peças).
    Os vídeos que você coloca em cada peça pelo painel aparecem primeiro, com o preço.
    src: vídeo .mp4 (leve: uns 10 s, sem som)   capa: imagem antes de tocar
    link: área ou "área/Categoria" (igual à lista acima) */

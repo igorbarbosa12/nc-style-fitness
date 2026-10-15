@@ -640,7 +640,7 @@ function checaFixo(){
 }
 addEventListener("scroll", () => { if(!fixoPendente){ fixoPendente = true; requestAnimationFrame(checaFixo); } }, {passive:true});
 
-/* ---------- looks em movimento (vídeos das peças) ----------
+/* ---------- "veja no corpo" (vídeos das peças e da loja) ----------
    cada vídeo só baixa e toca quando aparece na tela */
 function videoCardHTML(p){
   const capa = fotosDaCor(p, p.cores[0][0])[0] || "";
