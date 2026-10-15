@@ -40,15 +40,17 @@ const GRUPOS = {
 
 /* "Navegue pelas categorias" na página inicial.
    Com 6 itens vira mosaico (o 1º e o 4º ficam altos). Item sem peça no site some sozinho.
+   A foto de cada quadro é a capa da peça mais nova daquela categoria (muda sozinha).
+   foto: opcional, pra fixar uma foto no quadro em vez de usar a das peças
    link: área (feminino, masculino, praia, acessorios) ou "área/Categoria" (igual à lista acima)
    pos:  que parte da foto aparece no quadro ("50% 20%" = meio, mais pra cima) */
 const CATEGORIAS_INICIO = [
-  { nome:"Conjuntos de leg",   link:"feminino/Conjunto de Leg",   foto:"img/fotos/prod-conjunto-leg-rose.webp",   pos:"50% 30%" },
-  { nome:"Conjuntos de short", link:"feminino/Conjunto de Short", foto:"img/fotos/prod-conjunto-short-oliva.webp", pos:"50% 62%" },
-  { nome:"Cropped",            link:"feminino/Cropped",           foto:"img/fotos/prod-cropped-faixa-rose.webp",  pos:"50% 30%" },
-  { nome:"Macaquinhos",        link:"feminino/Macaquinho",        foto:"img/fotos/prod-macaquinho-terracota.webp", pos:"50% 30%" },
-  { nome:"Masculino",          link:"masculino",                  foto:"img/fotos/cat-masculino.webp",            pos:"50% 22%" },
-  { nome:"Acessórios",         link:"acessorios",                 foto:"img/fotos/cat-acessorios.webp",           pos:"50% 50%" }
+  { nome:"Conjuntos de leg",   link:"feminino/Conjunto de Leg",   pos:"50% 30%" },
+  { nome:"Conjuntos de short", link:"feminino/Conjunto de Short", pos:"50% 62%" },
+  { nome:"Cropped",            link:"feminino/Cropped",           pos:"50% 30%" },
+  { nome:"Macaquinhos",        link:"feminino/Macaquinho",        pos:"50% 30%" },
+  { nome:"Masculino",          link:"masculino",                  pos:"50% 22%", foto:"img/fotos/masculino.webp" },
+  { nome:"Acessórios",         link:"acessorios",                 pos:"50% 50%" }
 ];
 
 /* Avaliações de clientes (a seção só aparece quando tiver pelo menos uma).

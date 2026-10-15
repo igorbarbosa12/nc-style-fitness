@@ -106,11 +106,14 @@ $("#numeros").innerHTML =
 /* ---------- navegue pelas categorias (mosaico) ----------
    antes de carregar as peças mostra todas; depois some o que não tem peça */
 const hashDe = link => { const [g, cat] = link.split("/"); return "#" + g + (cat ? "/" + encodeURIComponent(cat) : ""); };
-function temPecas(link){
+const pecasDe = link => {
   const [g, cat] = link.split("/");
-  if(!GRUPOS[g]) return false;
-  return PRODUTOS.some(p => !p.semEstoque && (cat ? p.cat === cat : GRUPOS[g].cats.includes(p.cat)));
-}
+  if(!GRUPOS[g]) return [];
+  return PRODUTOS.filter(p => !p.semEstoque && (cat ? p.cat === cat : GRUPOS[g].cats.includes(p.cat)));
+};
+const temPecas = link => pecasDe(link).length > 0;
+/* foto do quadro: a fixa (se tiver) ou a capa da peça mais nova da categoria */
+const fotoDaCategoria = c => c.foto || pecasDe(c.link).find(p => p.fotos?.[0])?.fotos[0] || "";
 function renderCategorias(){
   const lista = carregado ? CATEGORIAS_INICIO.filter(c => temPecas(c.link)) : CATEGORIAS_INICIO;
   const mosaico = lista.length === 6;
@@ -119,7 +122,7 @@ function renderCategorias(){
   el.style.setProperty("--n", Math.min(lista.length, 4));
   el.innerHTML = lista.map((c,i) => `
     <a class="cat-card${mosaico && (i === 0 || i === 3) ? " alto" : ""}" href="${esc(hashDe(c.link))}">
-      <img class="fade" src="${esc(c.foto)}" alt="" loading="lazy" decoding="async" style="object-position:${esc(c.pos || "50% 25%")}">
+      ${fotoDaCategoria(c) ? `<img class="fade" src="${esc(fotoDaCategoria(c))}" alt="" loading="lazy" decoding="async" style="object-position:${esc(c.pos || "50% 25%")}">` : ""}
       <span class="cat-rotulo"><b>${esc(c.nome)}</b><span>Ver tudo</span></span>
     </a>`).join("");
   $("#secCategorias").hidden = !lista.length;

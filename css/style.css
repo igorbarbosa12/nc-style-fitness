@@ -572,7 +572,7 @@ html.anima .revela.visto{opacity:1;transform:none}
   .ele-texto p{font-size:17px;max-width:30ch}
   .ele-texto .btn{height:52px;padding:0 30px;margin-top:8px;font-size:13px}
   .ele-foto{flex:2 1 520px;min-width:0;height:520px}
-  .ele-foto img{object-position:78% 30%}
+  .ele-foto img{object-position:50% 20%}
 
 
   .avaliacoes{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;overflow:visible;max-width:1280px;margin:0 auto;padding:0 32px}
