@@ -80,7 +80,7 @@ document.addEventListener("keydown",e=>{ if(e.key==="Escape") fecharModal(); });
 let clientes=[];   // {id,nome,telefone,observacao,saldo,total_fiado,total_pago}
 async function carregarClientes(){
   const [c, s] = await Promise.all([
-    sb.from("clientes").select("id,nome,telefone,observacao").order("nome"),
+    sb.from("clientes").select("id,nome,telefone,observacao,saldo_anterior").order("nome"),
     sb.from("saldo_clientes").select("id,saldo,total_fiado,total_pago")
   ]);
   if(c.error) throw c.error;
@@ -96,13 +96,20 @@ function abrirCadastroCliente(cli=null, callback=null, nomeInicial=""){
   clienteEditando=cli; aposSalvarCliente=callback;
   $("#mClienteTit").textContent = cli ? "Editar cliente" : "Cliente novo";
   $("#kNome").value=cli?.nome||nomeInicial; $("#kTel").value=cli?.telefone||""; $("#kObs").value=cli?.observacao||"";
+  $("#kAnterior").value = Number(cli?.saldo_anterior||0) > 0 ? formatar(Number(cli.saldo_anterior).toFixed(2)) : "";
   $("#kErro").textContent=""; $("#kExcluir").hidden=!cli;
   abrirModal("#mCliente"); $("#kNome").focus();
 }
 $("#kSalvar").onclick=async()=>{
   const nome=$("#kNome").value.trim();
   if(!nome){ $("#kErro").textContent="Coloca o nome."; return; }
-  const linha={ nome, telefone:$("#kTel").value.trim()||null, observacao:$("#kObs").value.trim()||null };
+  const anterior = $("#kAnterior").value.trim() ? numCampo($("#kAnterior").value) : 0;
+  if(anterior==null || anterior<0){ $("#kErro").textContent="O valor que ela já devia está estranho. Ex: 1570 ou 1570,50"; return; }
+  if(clienteEditando){   // diminuir a dívida antiga não pode deixar o saldo negativo
+    const minimo=Math.round((Number(clienteEditando.saldo_anterior||0)-Number(clienteEditando.saldo||0))*100)/100;
+    if(anterior<minimo){ $("#kErro").textContent=`Com os pagamentos que ela já fez, aqui não pode ficar menos que ${reais(minimo)}.`; return; }
+  }
+  const linha={ nome, telefone:$("#kTel").value.trim()||null, observacao:$("#kObs").value.trim()||null, saldo_anterior:Math.round(anterior*100)/100 };
   const b=$("#kSalvar"); b.disabled=true;
   const r = clienteEditando
     ? await sb.from("clientes").update(linha).eq("id",clienteEditando.id).select().single()
@@ -115,7 +122,8 @@ $("#kSalvar").onclick=async()=>{
   if(aposSalvarCliente) aposSalvarCliente(salvo);
 };
 $("#kExcluir").onclick=async()=>{
-  if(!confirm(`Excluir ${clienteEditando.nome}?`)) return;
+  const deve=Number(clienteEditando.saldo||0);
+  if(!confirm(deve>0 ? `${clienteEditando.nome} ainda deve ${reais(deve)}. Excluir mesmo assim? A dívida some junto.` : `Excluir ${clienteEditando.nome}?`)) return;
   const { error }=await sb.from("clientes").delete().eq("id",clienteEditando.id);
   if(error){
     toast(error.code==="23503" ? "Esse cliente tem compras ou pagamentos registrados, não dá pra excluir." : "Não deu pra excluir: "+error.message, true);
@@ -417,7 +425,7 @@ function renderFiado(){
   $("#fLista").innerHTML=l.map(c=>`
     <button class="linha-cliente" data-cli="${c.id}">
       <span class="avatar">${esc(c.nome[0]||"?").toUpperCase()}</span>
-      <div><div class="nome">${esc(c.nome)}</div><small>${ultimaFiado[c.id]?`Última compra fiado: ${diaCurto(ultimaFiado[c.id])}`:(c.telefone?esc(c.telefone):"Sem compras no fiado")}</small></div>
+      <div><div class="nome">${esc(c.nome)}</div><small>${ultimaFiado[c.id]?`Última compra fiado: ${diaCurto(ultimaFiado[c.id])}`:Number(c.saldo_anterior)>0?"Dívida de antes do painel":(c.telefone?esc(c.telefone):"Sem compras no fiado")}</small></div>
       <div class="dir">${c.saldo>0.009?`<b class="deve">${reais(c.saldo)}</b>`:c.saldo<-0.009?`<span class="selo ok">crédito ${reais(-c.saldo)}</span>`:`<span class="selo ok">Em dia</span>`}</div>
     </button>`).join("");
 }
@@ -449,7 +457,10 @@ async function abrirFicha(id){
   $("#cSaldoRotulo").textContent = deve ? "Deve" : c.saldo<-0.009 ? "Tem crédito de" : "Situação";
   $("#cSaldo").textContent = deve ? reais(c.saldo) : c.saldo<-0.009 ? reais(-c.saldo) : "Em dia";
   $("#cSaldo").className = deve ? "deve" : "";
-  $("#cInfo").textContent=[c.telefone, `Comprou ${reais(c.total_fiado)} no fiado · pagou ${reais(c.total_pago)}`, c.observacao].filter(Boolean).join(" · ");
+  const antes=Number(c.saldo_anterior||0);
+  $("#cInfo").textContent=[c.telefone,
+    (antes>0 ? `Devia ${reais(antes)} de antes · comprou ${reais(c.total_fiado-antes)} no fiado` : `Comprou ${reais(c.total_fiado)} no fiado`) + ` · pagou ${reais(c.total_pago)}`,
+    c.observacao].filter(Boolean).join(" · ");
   $("#cReceber").disabled=!deve;
 
   const w=linkWhats(c.telefone);
@@ -465,7 +476,13 @@ async function abrirFicha(id){
     ...vs.data.map(v=>({tipo:"venda",data:v.data,v})),
     ...ps.data.map(p=>({tipo:"pag",data:p.data,p}))
   ].sort((a,b)=>new Date(b.data)-new Date(a.data));
-  $("#cHist").innerHTML = hist.length ? hist.map(h=> h.tipo==="venda" ? `
+  const linhaAntes = antes>0 ? `
+    <button class="hist-item" data-anterior>
+      <span class="hist-ico fiado">−</span>
+      <div><b>Dívida de antes do painel</b><small>Compras antigas, do caderninho · toque pra mudar o valor</small></div>
+      <b class="dir">${reais(antes)}</b>
+    </button>` : "";
+  $("#cHist").innerHTML = (hist.length || antes>0) ? hist.map(h=> h.tipo==="venda" ? `
     <button class="hist-item" data-hv="${h.v.id}">
       <span class="hist-ico ${h.v.forma_pagamento==="fiado"?"fiado":""}">−</span>
       <div><b>${h.v.forma_pagamento==="fiado"?"Compra no fiado":`Compra (${FORMAS[h.v.forma_pagamento]})`}</b>
@@ -477,13 +494,14 @@ async function abrirFicha(id){
       <div><b>Pagou</b><small>${diaCurto(h.p.data)} · ${FORMAS[h.p.forma]}${h.p.observacao?` · ${esc(h.p.observacao)}`:""}</small>
         <button class="link desfazer" data-hp="${h.p.id}" data-valor="${h.p.valor}">Desfazer</button></div>
       <b class="dir pago">${reais(h.p.valor)}</b>
-    </div>`).join("") : `<p class="vazio">Nenhuma compra ou pagamento ainda.</p>`;
+    </div>`).join("") + linhaAntes : `<p class="vazio">Nenhuma compra ou pagamento ainda.</p>`;
 }
 function fecharFicha(){ $("#telaCliente").hidden=true; document.body.style.overflow=""; fichaId=null; fichaCli=null; }
 document.querySelectorAll("[data-fechar-cliente]").forEach(b=>b.addEventListener("click",()=>{ fecharFicha(); if(!$('[data-tela="fiado"]').hidden) renderFiado(); }));
 $("#cEditar").onclick=()=>abrirCadastroCliente(fichaCli, c=>{ abrirFicha(c.id); carregarFiado(); });
 $("#cHist").addEventListener("click",async e=>{
   const hv=e.target.closest("[data-hv]"), hp=e.target.closest("[data-hp]");
+  if(e.target.closest("[data-anterior]")){ $("#cEditar").click(); return; }
   if(hp){
     if(!confirm(`Desfazer o pagamento de ${reais(hp.dataset.valor)}? O valor volta pra dívida e sai do caixa.`)) return;
     const { error }=await sb.from("pagamentos").delete().eq("id",hp.dataset.hp);
