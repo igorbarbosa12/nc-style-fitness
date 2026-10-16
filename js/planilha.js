@@ -91,7 +91,7 @@ async function baixarPlanilha(){
   try{
     const [, cls, saldos, vendas, pags, movs, prods, custos]=await Promise.all([
       carregarExcel(),
-      buscarTudo("clientes","id,nome,telefone,observacao",[["nome",true],["id",true]]),
+      buscarTudo("clientes","id,nome,telefone,observacao,saldo_anterior",[["nome",true],["id",true]]),
       buscarTudo("saldo_clientes","id,total_fiado,total_pago,saldo",[["id",true]]),
       buscarTudo("vendas","id,data,total,forma_pagamento,observacao,cliente_id,itens_venda(produto_nome,cor,tamanho,quantidade,preco_unitario,custo_unitario)",[["data",false],["id",false]]),
       buscarTudo("pagamentos","id,cliente_id,valor,forma,data,observacao",[["data",false],["id",false]]),
@@ -121,10 +121,10 @@ async function baixarPlanilha(){
       })));
 
     novaAba(wb,"Fiado",
-      [["Cliente",26],["Telefone",17],["Comprou no fiado",16,F_MOEDA],["Já pagou",13,F_MOEDA],["Falta pagar",13,F_MOEDA],["Observação",32]],
-      cls.map(c=>{ const s=saldo[c.id]||{};
-        return [c.nome, c.telefone||null, n(s.total_fiado)??0, n(s.total_pago)??0, n(s.saldo)??0, c.observacao||null]; })
-        .sort((a,b)=>b[4]-a[4]||a[0].localeCompare(b[0],"pt-BR")));
+      [["Cliente",26],["Telefone",17],["Devia de antes",14,F_MOEDA],["Comprou no fiado",16,F_MOEDA],["Já pagou",13,F_MOEDA],["Falta pagar",13,F_MOEDA],["Observação",32]],
+      cls.map(c=>{ const s=saldo[c.id]||{}, antes=n(c.saldo_anterior)??0;
+        return [c.nome, c.telefone||null, antes, (n(s.total_fiado)??0)-antes, n(s.total_pago)??0, n(s.saldo)??0, c.observacao||null]; })
+        .sort((a,b)=>b[5]-a[5]||a[0].localeCompare(b[0],"pt-BR")));
 
     novaAba(wb,"Pagamentos do fiado",
       [["Data",17,F_HORA],["Cliente",26],["Valor",13,F_MOEDA],["Forma",12],["Observação",32]],
