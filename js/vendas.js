@@ -466,7 +466,7 @@ async function abrirFicha(id){
   const w=linkWhats(c.telefone);
   const cob=$("#cCobrar");
   if(deve && w){
-    const msg=`Oi, ${primeiroNome(c.nome)}! Tudo bem? 😊\n\nPassando pra lembrar do seu saldo na NC Style Fitness:\n\nCompras: ${reais(c.total_fiado)}\nJá pago: ${reais(c.total_pago)}\n*Falta: ${reais(c.saldo)}*\n\nQualquer dúvida é só chamar. Obrigada!`;
+    const msg=`Oi, ${primeiroNome(c.nome)}! Tudo bem? 😊\n\nPassando pra lembrar do seu débito na NC Style Fitness:\n\nCompras: ${reais(c.total_fiado)}\nJá pago: ${reais(c.total_pago)}\n*Falta: ${reais(c.saldo)}*\n\nQualquer dúvida é só chamar. Obrigada!`;
     cob.href=`https://wa.me/${w}?text=${encodeURIComponent(msg)}`; cob.classList.remove("desligado"); cob.textContent="Cobrar no WhatsApp";
   } else {
     cob.removeAttribute("href"); cob.classList.add("desligado"); cob.textContent = w ? "Cobrar no WhatsApp" : "Sem WhatsApp cadastrado";
