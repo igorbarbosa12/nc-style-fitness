@@ -492,7 +492,7 @@ async function abrirFicha(id){
     <div class="hist-item">
       <span class="hist-ico pago">+</span>
       <div><b>Pagou</b><small>${diaCurto(h.p.data)} · ${FORMAS[h.p.forma]}${h.p.observacao?` · ${esc(h.p.observacao)}`:""}</small>
-        <button class="link desfazer" data-hp="${h.p.id}" data-valor="${h.p.valor}">Desfazer</button></div>
+        <span class="acoes-pag"><button class="link desfazer" data-hp="${h.p.id}" data-valor="${h.p.valor}">Desfazer</button>${w?`<a class="link desfazer" href="${linkRecibo(w,c,h.p.valor,h.p.forma,h.p.data,c.total_pago,c.saldo)}" target="_blank" rel="noopener">Mandar recibo</a>`:""}</span></div>
       <b class="dir pago">${reais(h.p.valor)}</b>
     </div>`).join("") + linhaAntes : `<p class="vazio">Nenhuma compra ou pagamento ainda.</p>`;
 }
@@ -512,6 +512,17 @@ $("#cHist").addEventListener("click",async e=>{
   if(hv) abrirDetalheVenda(fichaVendas.find(v=>v.id==hv.dataset.hv));
 });
 
+/* ---------- recibo do pagamento pro WhatsApp da cliente ----------
+   Mostra quanto ela pagou e quanto falta agora (compras, já pago e falta, igual à cobrança). */
+const FORMA_RECIBO = { pix:"no Pix", dinheiro:"em dinheiro", debito:"no cartão de débito", credito:"no cartão de crédito" };
+function linkRecibo(w, c, valor, forma, data, totalPago, saldo){
+  const pagou=[`Recebi seu pagamento de ${reais(valor)}`, FORMA_RECIBO[forma], `em ${diaCurto(data)}.`].filter(Boolean).join(" ");
+  const msg=`Oi, ${primeiroNome(c.nome)}! Tudo bem? 😊\n\n${pagou} Obrigada!\n\n` + (saldo>0.009
+    ? `Compras: ${reais(c.total_fiado)}\nJá pago: ${reais(totalPago)}\n*Falta: ${reais(saldo)}*\n\nQualquer dúvida é só chamar.`
+    : `*Tudo pago!* Você não deve mais nada na NC Style Fitness. 🎉`);
+  return `https://wa.me/${w}?text=${encodeURIComponent(msg)}`;
+}
+
 /* ---------- receber pagamento ---------- */
 let formaReceber=null;
 $("#cReceber").onclick=()=>{
@@ -523,6 +534,7 @@ $("#cReceber").onclick=()=>{
   $("#rData").value=hojeISO(); $("#rData").max=hojeISO();
   $("#rObs").value=""; $("#rErro").textContent="";
   chipsFormas($("#rFormas"),["pix","dinheiro","debito","credito"],null);
+  $("#rForm").hidden=false; $("#rFeito").hidden=true;
   abrirModal("#mReceber");
 };
 $("#rFormas").addEventListener("click",e=>{
@@ -535,14 +547,19 @@ $("#rSalvar").onclick=async()=>{
   if(valor>c.saldo+0.009) return $("#rErro").textContent=`O valor passa do que ele deve (${reais(c.saldo)}).`;
   if(!formaReceber) return $("#rErro").textContent="Escolhe a forma de pagamento.";
   const b=$("#rSalvar"); b.disabled=true;
+  const data=dataPraBanco($("#rData").value);
   const { error }=await sb.rpc("receber_pagamento",{
     p_cliente_id:c.id, p_valor:valor, p_forma:formaReceber,
-    p_data:dataPraBanco($("#rData").value), p_observacao:$("#rObs").value.trim()||null
+    p_data:data, p_observacao:$("#rObs").value.trim()||null
   });
   b.disabled=false;
   if(error) return $("#rErro").textContent="Não deu pra salvar: "+error.message;
-  fecharModal();
-  const resto=c.saldo-valor;
-  toast(resto>0.009 ? `Recebido! Ainda falta ${reais(resto)}.` : `Recebido! ${primeiroNome(c.nome)} quitou tudo. 🎉`);
+  const resto=Math.round((c.saldo-valor)*100)/100, w=linkWhats(c.telefone);
+  $("#rFeitoTxt").textContent=`Recebido ${reais(valor)} ${FORMA_RECIBO[formaReceber]||""}. `
+    + (resto>0.009 ? `Ainda falta ${reais(resto)}.` : `${primeiroNome(c.nome)} quitou tudo! 🎉`)
+    + (w ? "" : " Ela não tem WhatsApp cadastrado, então não dá pra mandar o recibo.");
+  $("#rRecibo").hidden=!w;
+  if(w) $("#rRecibo").href=linkRecibo(w, c, valor, formaReceber, data, c.total_pago+valor, resto);
+  $("#rForm").hidden=true; $("#rFeito").hidden=false;
   abrirFicha(c.id); carregarFiado();
 };

@@ -272,6 +272,10 @@ button.hist-item:hover{background:var(--areia)}
 .hist-ico.fiado{background:#F8E1DD;color:var(--perigo)}
 .hist-ico.pago{background:#E3F1E9;color:var(--ok)}
 .link.desfazer{padding:4px 0 0;font-size:.76rem;text-decoration:underline}
+.acoes-pag{display:flex;gap:18px}
+.recibo-ok{text-align:center}
+.recibo-ok .recibo-tit{font-weight:600;color:#1F8F55;margin:4px 0 6px}
+.recibo-ok .btn.contorno{margin-top:8px}
 .editor-topo #cEditar{justify-self:end}
 
 /* =====================================================================

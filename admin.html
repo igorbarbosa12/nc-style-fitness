@@ -411,13 +411,22 @@
 <!-- receber pagamento de fiado -->
 <div class="modal" id="mReceber" role="dialog" aria-modal="true" aria-labelledby="mReceberTit" hidden>
   <div class="modal-topo"><span></span><h3 id="mReceberTit">Receber pagamento</h3><button class="fechar" data-fechar-modal aria-label="Fechar">×</button></div>
-  <p class="dica" id="rDeve"></p>
-  <label class="campo"><span>Valor recebido (R$)</span><input id="rValor" inputmode="decimal"></label>
-  <div class="campo"><span>Forma</span><div class="chips formas" id="rFormas"></div></div>
-  <label class="campo"><span>Data</span><input type="date" id="rData"></label>
-  <label class="campo"><span>Observação (opcional)</span><input id="rObs" autocomplete="off"></label>
-  <p class="erro" id="rErro"></p>
-  <button class="btn cheio" id="rSalvar" type="button">Confirmar pagamento</button>
+  <div id="rForm">
+    <p class="dica" id="rDeve"></p>
+    <label class="campo"><span>Valor recebido (R$)</span><input id="rValor" inputmode="decimal"></label>
+    <div class="campo"><span>Forma</span><div class="chips formas" id="rFormas"></div></div>
+    <label class="campo"><span>Data</span><input type="date" id="rData"></label>
+    <label class="campo"><span>Observação (opcional)</span><input id="rObs" autocomplete="off"></label>
+    <p class="erro" id="rErro"></p>
+    <button class="btn cheio" id="rSalvar" type="button">Confirmar pagamento</button>
+  </div>
+  <!-- depois de confirmar: mandar o recibo pra cliente -->
+  <div id="rFeito" class="recibo-ok" hidden>
+    <p class="recibo-tit">✓ Pagamento registrado</p>
+    <p class="dica" id="rFeitoTxt"></p>
+    <a class="btn cheio whats" id="rRecibo" target="_blank" rel="noopener">Mandar recibo no WhatsApp</a>
+    <button class="btn cheio contorno" type="button" data-fechar-modal>Fechar</button>
+  </div>
 </div>
 
 <!-- detalhe de uma venda -->
