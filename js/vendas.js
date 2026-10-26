@@ -517,9 +517,9 @@ $("#cHist").addEventListener("click",async e=>{
 const FORMA_RECIBO = { pix:"no Pix", dinheiro:"em dinheiro", debito:"no cartão de débito", credito:"no cartão de crédito" };
 function linkRecibo(w, c, valor, forma, data, totalPago, saldo){
   const pagou=[`Recebi seu pagamento de ${reais(valor)}`, FORMA_RECIBO[forma], `em ${diaCurto(data)}.`].filter(Boolean).join(" ");
-  const msg=`Oi, ${primeiroNome(c.nome)}! Tudo bem? 😊\n\n${pagou} Obrigada!\n\n` + (saldo>0.009
+  const msg=`Oi, ${primeiroNome(c.nome)}! 😊\n\n${pagou} Obrigada!\n\n` + (saldo>0.009
     ? `Compras: ${reais(c.total_fiado)}\nJá pago: ${reais(totalPago)}\n*Falta: ${reais(saldo)}*`
-    : `*Tudo pago!* Você não deve mais nada na NC Style Fitness. 🎉`)
+    : `*Tudo pago na NC Style Fitness!* 🎉`)
     + `\n\nMuito obrigada, precisando estou sempre aqui para lhe atender 🤝.`;
   return `https://wa.me/${w}?text=${encodeURIComponent(msg)}`;
 }
