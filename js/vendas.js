@@ -198,7 +198,7 @@ function abrirDetalheVenda(v){
 /* resumo da compra pro WhatsApp da cliente: as peças, o total e a forma de pagamento */
 function linkCompra(w, nome, itens, total, forma, data){
   const pecas=itens.map(i=>`• ${i.qtd}x ${i.nome} (${i.cor}/${i.tam}): ${reais(i.qtd*i.preco)}`).join("\n");
-  const msg=`Oi, ${primeiroNome(nome)}! 😊\n\nAqui estão as peças que você levou na NC Style Fitness em ${diaCurto(data)}:\n\n${pecas}\n\n*Total: ${reais(total)}*\nPagamento: ${FORMAS[forma]||forma}\n\nMuito obrigada, precisando estou sempre aqui para lhe atender 🤝.`;
+  const msg=`Oi, ${primeiroNome(nome)}! 😊\n\nObrigada pela compra! Aqui estão as peças que você levou na NC Style Fitness em ${diaCurto(data)}:\n\n${pecas}\n\n*Total: ${reais(total)}*\nPagamento: ${FORMAS[forma]||forma}\n\nPrecisando estou sempre aqui para lhe atender 🤝.`;
   return `https://wa.me/${w}?text=${encodeURIComponent(msg)}`;
 }
 function linhaLucro(itens){
