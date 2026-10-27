@@ -429,10 +429,22 @@
   </div>
 </div>
 
+<!-- depois de registrar a venda: mandar pra cliente o que ela levou -->
+<div class="modal" id="mVendaOk" role="dialog" aria-modal="true" aria-labelledby="mVendaOkTit" hidden>
+  <div class="modal-topo"><span></span><h3 id="mVendaOkTit">Venda</h3><button class="fechar" data-fechar-modal aria-label="Fechar">×</button></div>
+  <div class="recibo-ok">
+    <p class="recibo-tit">✓ Venda registrada</p>
+    <p class="dica" id="voTxt"></p>
+    <a class="btn cheio whats" id="voWhats" target="_blank" rel="noopener">Mandar resumo no WhatsApp</a>
+    <button class="btn cheio contorno" type="button" data-fechar-modal>Fechar</button>
+  </div>
+</div>
+
 <!-- detalhe de uma venda -->
 <div class="modal" id="mVenda" role="dialog" aria-modal="true" aria-labelledby="mVendaTit" hidden>
   <div class="modal-topo"><span></span><h3 id="mVendaTit">Venda</h3><button class="fechar" data-fechar-modal aria-label="Fechar">×</button></div>
   <div id="dVenda"></div>
+  <a class="btn cheio whats" id="dWhats" target="_blank" rel="noopener" hidden>Mandar pra cliente no WhatsApp</a>
   <button class="btn perigo contorno cheio" id="dCancelar" type="button">Cancelar venda e devolver peças ao estoque</button>
 </div>
 
