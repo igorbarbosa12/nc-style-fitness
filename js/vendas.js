@@ -188,11 +188,16 @@ function abrirDetalheVenda(v){
     ${linhaLucro(v.itens_venda)}
     ${v.observacao?`<p class="dica">Obs: ${esc(v.observacao)}</p>`:""}`;
   /* mandar pra cliente o que ela levou (sem custo nem lucro) */
-  const w=linkWhats(v.clientes?.telefone);
-  $("#dWhats").hidden=!w;
-  if(w) $("#dWhats").href=linkCompra(w, v.clientes.nome,
-    v.itens_venda.map(i=>({ qtd:i.quantidade, nome:i.produto_nome, cor:i.cor, tam:i.tamanho, preco:i.preco_unitario })),
-    v.total, v.forma_pagamento, v.data);
+  const w=linkWhats(v.clientes?.telefone), dw=$("#dWhats");
+  dw.hidden=!v.clientes;   // venda sem cliente: não tem pra quem mandar
+  if(w){
+    dw.href=linkCompra(w, v.clientes.nome,
+      v.itens_venda.map(i=>({ qtd:i.quantidade, nome:i.produto_nome, cor:i.cor, tam:i.tamanho, preco:i.preco_unitario })),
+      v.total, v.forma_pagamento, v.data);
+    dw.classList.remove("desligado"); dw.textContent="Mandar pra cliente no WhatsApp";
+  } else {   // cliente sem número: avisa em vez de sumir (igual o "Cobrar" da ficha)
+    dw.removeAttribute("href"); dw.classList.add("desligado"); dw.textContent="Sem WhatsApp cadastrado";
+  }
   abrirModal("#mVenda");
 }
 /* resumo da compra pro WhatsApp da cliente: as peças, o total e a forma de pagamento */
