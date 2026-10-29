@@ -140,7 +140,7 @@ async function carregarVendas(){
   const [y,m]=$("#vMes").value.split("-").map(Number);
   const ini=new Date(y,m-1,1), fim=new Date(y,m,1);
   const { data, error }=await sb.from("vendas")
-    .select("id,data,total,forma_pagamento,observacao,cliente_id,clientes(nome),itens_venda(produto_nome,cor,tamanho,quantidade,preco_unitario,custo_unitario)")
+    .select("id,data,total,forma_pagamento,observacao,cliente_id,clientes(nome,telefone),itens_venda(produto_nome,cor,tamanho,quantidade,preco_unitario,custo_unitario)")
     .gte("data",ini.toISOString()).lt("data",fim.toISOString())
     .order("data",{ascending:false});
   if(error){ $("#vLista").innerHTML=`<p class="vazio">Erro ao carregar: ${esc(error.message)}</p>`; return; }
@@ -187,7 +187,19 @@ function abrirDetalheVenda(v){
     <div class="total-venda"><span>Total</span><b>${reais(v.total)}</b></div>
     ${linhaLucro(v.itens_venda)}
     ${v.observacao?`<p class="dica">Obs: ${esc(v.observacao)}</p>`:""}`;
+  /* mandar pra cliente o que ela levou (sem custo nem lucro) */
+  const w=linkWhats(v.clientes?.telefone);
+  $("#dWhats").hidden=!w;
+  if(w) $("#dWhats").href=linkCompra(w, v.clientes.nome,
+    v.itens_venda.map(i=>({ qtd:i.quantidade, nome:i.produto_nome, cor:i.cor, tam:i.tamanho, preco:i.preco_unitario })),
+    v.total, v.forma_pagamento, v.data);
   abrirModal("#mVenda");
+}
+/* resumo da compra pro WhatsApp da cliente: as peças, o total e a forma de pagamento */
+function linkCompra(w, nome, itens, total, forma, data){
+  const pecas=itens.map(i=>`• ${i.qtd}x ${i.nome} (${i.cor}/${i.tam}): ${reais(i.qtd*i.preco)}`).join("\n");
+  const msg=`Oi, ${primeiroNome(nome)}! 😊\n\nObrigada pela compra! Aqui estão as peças que você levou na NC Style Fitness em ${diaCurto(data)}:\n\n${pecas}\n\n*Total: ${reais(total)}*\nPagamento: ${FORMAS[forma]||forma}\n\nPrecisando estou sempre aqui para lhe atender 🤝.`;
+  return `https://wa.me/${w}?text=${encodeURIComponent(msg)}`;
 }
 function linhaLucro(itens){
   const com=itens.filter(i=>i.custo_unitario!=null);
@@ -304,18 +316,26 @@ $("#vSalvar").onclick=async()=>{
   if(venda.forma==="fiado" && !venda.cliente) return erro("Venda fiado precisa de cliente.");
   erro("");
   const b=$("#vSalvar"); b.disabled=true; b.textContent="Registrando...";
+  const data=dataPraBanco($("#vData").value);
   const { error }=await sb.rpc("registrar_venda",{
     p_itens: venda.itens.map(i=>({ variacao_id:i.variacao_id, quantidade:i.qtd, preco_unitario:i.preco })),
     p_forma: venda.forma,
     p_cliente_id: venda.cliente?.id ?? null,
-    p_data: dataPraBanco($("#vData").value),
+    p_data: data,
     p_observacao: $("#vObs").value.trim() || null
   });
   b.disabled=false;
   if(error){ renderItensVenda(); return erro("Não deu pra registrar: "+error.message); }
-  const eraFiado=venda.forma==="fiado", cli=venda.cliente;
+  const eraFiado=venda.forma==="fiado", cli=venda.cliente, w=linkWhats(cli?.telefone);
+  const total=venda.itens.reduce((s,i)=>s+i.qtd*i.preco,0);
+  const link = w ? linkCompra(w, cli.nome, venda.itens, total, venda.forma, data) : null;
   fecharVenda();
-  toast(eraFiado ? `Venda anotada no fiado de ${primeiroNome(cli.nome)}.` : "Venda registrada! Estoque atualizado.");
+  if(link){   // cliente com WhatsApp: oferece mandar o resumo do que ela levou
+    $("#voTxt").textContent = eraFiado ? `Anotada no fiado de ${primeiroNome(cli.nome)}: ${reais(total)}.` : `${reais(total)} de ${primeiroNome(cli.nome)}. Estoque atualizado.`;
+    $("#mVendaOkTit").textContent=`Venda de ${primeiroNome(cli.nome)}`;
+    $("#voWhats").href=link;
+    abrirModal("#mVendaOk");
+  } else toast(eraFiado ? `Venda anotada no fiado de ${primeiroNome(cli.nome)}.` : "Venda registrada! Estoque atualizado.");
   carregarProdutos();
   if(!$('[data-tela="vendas"]').hidden) carregarVendas();
   if(!$('[data-tela="fiado"]').hidden) carregarFiado();
@@ -441,7 +461,7 @@ async function abrirFicha(id){
   $("#cHist").innerHTML=`<p class="vazio">Carregando...</p>`;
   const [cs, vs, ps]=await Promise.all([
     carregarClientes().then(()=>null).catch(e=>e),
-    sb.from("vendas").select("id,data,total,forma_pagamento,observacao,cliente_id,clientes(nome),itens_venda(produto_nome,cor,tamanho,quantidade,preco_unitario,custo_unitario)").eq("cliente_id",id).order("data",{ascending:false}),
+    sb.from("vendas").select("id,data,total,forma_pagamento,observacao,cliente_id,clientes(nome,telefone),itens_venda(produto_nome,cor,tamanho,quantidade,preco_unitario,custo_unitario)").eq("cliente_id",id).order("data",{ascending:false}),
     sb.from("pagamentos").select("*").eq("cliente_id",id).order("data",{ascending:false})
   ]);
   if(fichaId!==id) return;
@@ -466,7 +486,7 @@ async function abrirFicha(id){
   const w=linkWhats(c.telefone);
   const cob=$("#cCobrar");
   if(deve && w){
-    const msg=`Oi, ${primeiroNome(c.nome)}! Tudo bem? 😊\n\nPassando pra lembrar do seu débito na NC Style Fitness:\n\nCompras: ${reais(c.total_fiado)}\nJá pago: ${reais(c.total_pago)}\n*Falta: ${reais(c.saldo)}*\n\nMuito obrigada, precisando estou sempre aqui para lhe atender 🤝.`;
+    const msg=`Oi, ${primeiroNome(c.nome)}! 😊\n\nPassando pra lembrar do seu débito na NC Style Fitness:\n\nCompras: ${reais(c.total_fiado)}\nJá pago: ${reais(c.total_pago)}\n*Falta: ${reais(c.saldo)}*\n\nMuito obrigada, precisando estou sempre aqui para lhe atender 🤝.`;
     cob.href=`https://wa.me/${w}?text=${encodeURIComponent(msg)}`; cob.classList.remove("desligado"); cob.textContent="Cobrar no WhatsApp";
   } else {
     cob.removeAttribute("href"); cob.classList.add("desligado"); cob.textContent = w ? "Cobrar no WhatsApp" : "Sem WhatsApp cadastrado";
@@ -517,9 +537,9 @@ $("#cHist").addEventListener("click",async e=>{
 const FORMA_RECIBO = { pix:"no Pix", dinheiro:"em dinheiro", debito:"no cartão de débito", credito:"no cartão de crédito" };
 function linkRecibo(w, c, valor, forma, data, totalPago, saldo){
   const pagou=[`Recebi seu pagamento de ${reais(valor)}`, FORMA_RECIBO[forma], `em ${diaCurto(data)}.`].filter(Boolean).join(" ");
-  const msg=`Oi, ${primeiroNome(c.nome)}! Tudo bem? 😊\n\n${pagou} Obrigada!\n\n` + (saldo>0.009
+  const msg=`Oi, ${primeiroNome(c.nome)}! 😊\n\n${pagou} Obrigada!\n\n` + (saldo>0.009
     ? `Compras: ${reais(c.total_fiado)}\nJá pago: ${reais(totalPago)}\n*Falta: ${reais(saldo)}*`
-    : `*Tudo pago!* Você não deve mais nada na NC Style Fitness. 🎉`)
+    : `*Tudo pago na NC Style Fitness!* 🎉`)
     + `\n\nMuito obrigada, precisando estou sempre aqui para lhe atender 🤝.`;
   return `https://wa.me/${w}?text=${encodeURIComponent(msg)}`;
 }
