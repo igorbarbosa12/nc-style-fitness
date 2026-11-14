@@ -35,7 +35,7 @@ const GRUPOS = {
   /* moda casual: separada do fitness. O site separa pela área, então o mesmo nome
      de categoria (ex.: "Calça") pode existir em mais de uma área sem misturar */
   "casual-feminino":  { nome:"Casual Feminino",
-                cats:["Vestido","Blusa","Calça","Saia","Short","Conjunto"] },
+                cats:["Vestido","Blusa","Calça","Saia","Short","Conjunto","Macaquinho","Macacão"] },
   "casual-masculino": { nome:"Casual Masculino",
                 cats:["Camisa","Camiseta","Bermuda","Calça"] },
   praia:      { nome:"Moda Praia", foto:"img/fotos/cat-moda-praia.webp",
