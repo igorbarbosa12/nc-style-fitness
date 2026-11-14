@@ -28,10 +28,16 @@ const AVISOS = [
 
 /* Áreas da loja e as categorias de cada uma. O painel também usa essa lista. */
 const GRUPOS = {
-  feminino:   { nome:"Feminino",   foto:"img/fotos/cat-feminino.webp",
+  feminino:   { nome:"Fitness Feminino",   foto:"img/fotos/cat-feminino.webp",
                 cats:["Conjunto de Leg","Conjunto de Short","Macaquinho","Macacão","Cropped","Blusa Feminina","Blusa de Tule"] },
-  masculino:  { nome:"Masculino",  foto:"img/fotos/cat-masculino.webp",
+  masculino:  { nome:"Fitness Masculino",  foto:"img/fotos/cat-masculino.webp",
                 cats:["Camisa Masculina","Short Masculino"] },
+  /* moda casual: separada do fitness. O site separa pela área, então o mesmo nome
+     de categoria (ex.: "Calça") pode existir em mais de uma área sem misturar */
+  "casual-feminino":  { nome:"Casual Feminino",
+                cats:["Vestido","Blusa","Calça","Saia","Short","Conjunto","Macaquinho","Macacão"] },
+  "casual-masculino": { nome:"Casual Masculino",
+                cats:["Camisa","Camiseta","Bermuda","Calça"] },
   praia:      { nome:"Moda Praia", foto:"img/fotos/cat-moda-praia.webp",
                 cats:["Biquíni"] },
   acessorios: { nome:"Acessórios", foto:"img/fotos/cat-acessorios.webp",
@@ -42,7 +48,7 @@ const GRUPOS = {
    Com 6 itens vira mosaico (o 1º e o 4º ficam altos). Item sem peça no site some sozinho.
    A foto de cada quadro é a capa da peça mais nova daquela categoria (muda sozinha).
    foto: opcional, pra fixar uma foto no quadro em vez de usar a das peças
-   link: área (feminino, masculino, praia, acessorios) ou "área/Categoria" (igual à lista acima)
+   link: área (feminino, masculino, casual-feminino, casual-masculino, praia, acessorios) ou "área/Categoria" (igual à lista acima)
    pos:  que parte da foto aparece no quadro ("50% 20%" = meio, mais pra cima) */
 const CATEGORIAS_INICIO = [
   { nome:"Conjuntos de leg",   link:"feminino/Conjunto de Leg",   pos:"50% 30%" },

@@ -109,7 +109,7 @@ const hashDe = link => { const [g, cat] = link.split("/"); return "#" + g + (cat
 const pecasDe = link => {
   const [g, cat] = link.split("/");
   if(!GRUPOS[g]) return [];
-  return PRODUTOS.filter(p => !p.semEstoque && (cat ? p.cat === cat : GRUPOS[g].cats.includes(p.cat)));
+  return PRODUTOS.filter(p => !p.semEstoque && grupoDe(p) === g && (!cat || p.cat === cat));
 };
 const temPecas = link => pecasDe(link).length > 0;
 /* foto do quadro: a fixa (se tiver) ou a capa da peça mais nova da categoria */
@@ -133,10 +133,10 @@ $("#menuDesk").innerHTML = Object.entries(GRUPOS).map(([k,g]) => `<a href="#${k}
   + `<a href="#todos" data-area="todos">Ver tudo</a>`;
 
 function renderMenu(){
-  const temProduto = c => !carregado || PRODUTOS.some(p => p.cat === c);
+  const temProduto = (k, c) => !carregado || PRODUTOS.some(p => grupoDe(p) === k && p.cat === c);
   $("#menuLista").innerHTML = Object.entries(GRUPOS).map(([k,g]) =>
     `<h3><a href="#${k}">${esc(g.nome)}</a></h3>` +
-    g.cats.filter(temProduto).map(c => `<a class="lk" href="#${k}/${encodeURIComponent(c)}">${esc(c)}</a>`).join("")
+    g.cats.filter(c => temProduto(k, c)).map(c => `<a class="lk" href="#${k}/${encodeURIComponent(c)}">${esc(c)}</a>`).join("")
   ).join("") +
   `<h3><a href="#todos">Ver tudo</a></h3>` +
   (LOJA.horario ? `<p class="lk" style="border:0;color:var(--suave)">Atendimento: ${esc(LOJA.horario)}</p>` : "") +
@@ -259,13 +259,13 @@ function mostrarVista(){
 /* ---------- área: lista de peças com filtros ---------- */
 let areaAtual = { g:null, cat:null };
 function renderArea(g, cat){
-  const lista = g === "todos" ? PRODUTOS : PRODUTOS.filter(p => GRUPOS[g].cats.includes(p.cat));
+  const lista = g === "todos" ? PRODUTOS : PRODUTOS.filter(p => grupoDe(p) === g);
   const chips = g === "todos"
-    ? Object.entries(GRUPOS).filter(([,v]) => PRODUTOS.some(p => v.cats.includes(p.cat))).map(([k,v]) => [k, v.nome])
+    ? Object.entries(GRUPOS).filter(([k]) => PRODUTOS.some(p => grupoDe(p) === k)).map(([k,v]) => [k, v.nome])
     : GRUPOS[g].cats.filter(c => lista.some(p => p.cat === c)).map(c => [c, c]);
   if(cat && !chips.some(c => c[0] === cat)) cat = null;
   const mostra = !cat ? lista
-    : g === "todos" ? lista.filter(p => GRUPOS[cat].cats.includes(p.cat))
+    : g === "todos" ? lista.filter(p => grupoDe(p) === cat)
     : lista.filter(p => p.cat === cat);
   // disponíveis primeiro, esgotados no fim
   mostra.sort((a,b) => a.semEstoque - b.semEstoque);
