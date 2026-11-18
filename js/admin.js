@@ -109,10 +109,23 @@ let produtos=[];
 const estoqueTotal = p => (p.variacoes||[]).reduce((s,v)=>s+v.estoque,0);
 
 let custosOk=true;   // false se o SQL 04 ainda não foi rodado
+
+/* custos: o Supabase entrega no máximo 1000 linhas por pedido e tem uma linha de custo
+   por variação (cor+tamanho), então busca de 1000 em 1000 até acabar */
+async function carregarCustos(){
+  const PASSO=1000; let tudo=[];
+  for(let de=0;;de+=PASSO){
+    const { data, error }=await sb.from("custos").select("variacao_id,custo").order("variacao_id").range(de, de+PASSO-1);
+    if(error) return { data:null, error };
+    tudo=tudo.concat(data);
+    if(data.length<PASSO) return { data:tudo, error:null };
+  }
+}
+
 async function carregarProdutos(){
   const [r, c] = await Promise.all([
     sb.from("produtos").select("*, variacoes(*)").order("criado_em",{ascending:false}),
-    sb.from("custos").select("variacao_id,custo")
+    carregarCustos()
   ]);
   const { data, error } = r;
   if(error){ $("#lista").innerHTML=`<p class="vazio">Erro ao carregar: ${esc(error.message)}</p>`; return; }
