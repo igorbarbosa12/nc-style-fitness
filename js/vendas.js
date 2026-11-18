@@ -203,7 +203,7 @@ function abrirDetalheVenda(v){
 /* resumo da compra pro WhatsApp da cliente: as peças, o total e a forma de pagamento */
 function linkCompra(w, nome, itens, total, forma, data){
   const pecas=itens.map(i=>`• ${i.qtd}x ${i.nome} (${i.cor}/${i.tam}): ${reais(i.qtd*i.preco)}`).join("\n");
-  const msg=`Oi, ${primeiroNome(nome)}! 😊\n\nObrigada pela compra! Aqui estão as peças que você levou na NC Style Fitness em ${diaCurto(data)}:\n\n${pecas}\n\n*Total: ${reais(total)}*\nPagamento: ${FORMAS[forma]||forma}\n\nPrecisando estou sempre aqui para lhe atender 🤝.`;
+  const msg=`Oi, ${primeiroNome(nome)}! 😊\n\nObrigada pela compra! Aqui estão as peças que você levou na NC Style Fitness em ${diaCurto(data)}:\n\n${pecas}\n\n*Total: ${reais(total)}*${forma==="fiado" ? "" : `\nPagamento: ${FORMAS[forma]||forma}`}\n\nPrecisando estou sempre aqui para lhe atender 🤝.`;
   return `https://wa.me/${w}?text=${encodeURIComponent(msg)}`;
 }
 function linhaLucro(itens){
@@ -491,7 +491,7 @@ async function abrirFicha(id){
   const w=linkWhats(c.telefone);
   const cob=$("#cCobrar");
   if(deve && w){
-    const msg=`Oi, ${primeiroNome(c.nome)}! 😊\n\nPassando pra lembrar do seu débito na NC Style Fitness:\n\nCompras: ${reais(c.total_fiado)}\nJá pago: ${reais(c.total_pago)}\n*Falta: ${reais(c.saldo)}*\n\nMuito obrigada, precisando estou sempre aqui para lhe atender 🤝.`;
+    const msg=`Oi, ${primeiroNome(c.nome)}! 😊\n\nPassando pra lembrar do seu débito na NC Style Fitness:\n\nCompras: ${reais(c.total_fiado)}\nJá pago: ${reais(c.total_pago)}\n*Restante: ${reais(c.saldo)}*\n\nMuito obrigada, precisando estou sempre aqui para lhe atender 🤝.`;
     cob.href=`https://wa.me/${w}?text=${encodeURIComponent(msg)}`; cob.classList.remove("desligado"); cob.textContent="Cobrar no WhatsApp";
   } else {
     cob.removeAttribute("href"); cob.classList.add("desligado"); cob.textContent = w ? "Cobrar no WhatsApp" : "Sem WhatsApp cadastrado";
@@ -543,7 +543,7 @@ const FORMA_RECIBO = { pix:"no Pix", dinheiro:"em dinheiro", debito:"no cartão 
 function linkRecibo(w, c, valor, forma, data, totalPago, saldo){
   const pagou=[`Recebi seu pagamento de ${reais(valor)}`, FORMA_RECIBO[forma], `em ${diaCurto(data)}.`].filter(Boolean).join(" ");
   const msg=`Oi, ${primeiroNome(c.nome)}! 😊\n\n${pagou} Obrigada!\n\n` + (saldo>0.009
-    ? `Compras: ${reais(c.total_fiado)}\nJá pago: ${reais(totalPago)}\n*Falta: ${reais(saldo)}*`
+    ? `Compras: ${reais(c.total_fiado)}\nJá pago: ${reais(totalPago)}\n*Restante: ${reais(saldo)}*`
     : `*Tudo pago na NC Style Fitness!* 🎉`)
     + `\n\nMuito obrigada, precisando estou sempre aqui para lhe atender 🤝.`;
   return `https://wa.me/${w}?text=${encodeURIComponent(msg)}`;
