@@ -140,7 +140,7 @@ async function carregarVendas(){
   const [y,m]=$("#vMes").value.split("-").map(Number);
   const ini=new Date(y,m-1,1), fim=new Date(y,m,1);
   const { data, error }=await sb.from("vendas")
-    .select("id,data,total,forma_pagamento,observacao,cliente_id,clientes(nome,telefone),itens_venda(produto_nome,cor,tamanho,quantidade,preco_unitario,custo_unitario)")
+    .select("id,data,total,forma_pagamento,observacao,cliente_id,clientes(nome,telefone),itens_venda(id,produto_nome,cor,tamanho,quantidade,preco_unitario,custo_unitario)")
     .gte("data",ini.toISOString()).lt("data",fim.toISOString())
     .order("data",{ascending:false});
   if(error){ $("#vLista").innerHTML=`<p class="vazio">Erro ao carregar: ${esc(error.message)}</p>`; return; }
@@ -182,7 +182,7 @@ function abrirDetalheVenda(v){
   $("#dVenda").innerHTML=`
     <p class="dica">${new Date(v.data).toLocaleDateString("pt-BR")} às ${hora(v.data)} · ${FORMAS[v.forma_pagamento]}${v.clientes?.nome?` · ${esc(v.clientes.nome)}`:""}</p>
     <div class="itens-lista">${v.itens_venda.map(i=>`
-      <div class="item-linha"><div>${i.quantidade}x ${esc(i.produto_nome)}<small>${esc(i.cor)} / ${esc(i.tamanho)} · ${reais(i.preco_unitario)} cada</small></div><b>${reais(i.quantidade*i.preco_unitario)}</b></div>`).join("")}
+      <div class="item-linha"><div>${i.quantidade}x ${esc(i.produto_nome)}<small>${esc(i.cor)} / ${esc(i.tamanho)} · ${reais(i.preco_unitario)} cada</small>${i.id?`<button class="link desfazer" type="button" data-dev="${i.id}">Devolver</button>`:""}</div><b>${reais(i.quantidade*i.preco_unitario)}</b></div>`).join("")}
     </div>
     <div class="total-venda"><span>Total</span><b>${reais(v.total)}</b></div>
     ${linhaLucro(v.itens_venda)}
@@ -212,6 +212,37 @@ function linhaLucro(itens){
   const lucro=com.reduce((s,i)=>s+(i.preco_unitario-i.custo_unitario)*i.quantidade,0);
   return `<div class="lucro-linha"><span>Lucro${com.length<itens.length?" (só das peças com custo)":""}</span><b>${reais(lucro)}</b></div>`;
 }
+/* devolver só uma peça (ou algumas) da venda, sem cancelar o resto */
+$("#dVenda").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-dev]"); if(!b) return;
+  const v=vendaAberta, i=v?.itens_venda.find(x=>x.id==b.dataset.dev); if(!i) return;
+  let qtd=1;
+  if(i.quantidade>1){
+    const r=prompt(`Quantas "${i.produto_nome}" a cliente vai devolver? (de 1 a ${i.quantidade})`,"1");
+    if(r==null) return;
+    qtd=parseInt(r,10);
+    if(!(qtd>=1 && qtd<=i.quantidade)) return toast(`Coloca um número de 1 a ${i.quantidade}.`,true);
+  }
+  const valor=Math.round(qtd*i.preco_unitario*100)/100, ultima=v.itens_venda.length===1 && qtd===i.quantidade;
+  let msg=`Devolver ${qtd}x ${i.produto_nome} (${i.cor} / ${i.tamanho})?\n\nA peça volta pro estoque e ${reais(valor)} sai da venda`
+    + (v.forma_pagamento==="fiado" ? ` e do que ${v.clientes?.nome ? primeiroNome(v.clientes.nome) : "a cliente"} deve.` : " e do caixa.");
+  if(ultima) msg+=`\n\nÉ a única peça da venda, então a venda #${v.id} some inteira.`;
+  if(!confirm(msg+"\n\nNão tem como desfazer.")) return;
+  b.disabled=true;
+  const { error }=await sb.rpc("devolver_item",{ p_item_id:i.id, p_qtd:qtd });
+  b.disabled=false;
+  if(error) return toast("Não deu pra devolver: "+error.message,true);
+  toast(`Devolvido! ${qtd}x ${i.produto_nome} voltou pro estoque.`);
+  if(ultima) fecharModal();
+  else {   // mostra a venda já sem a peça
+    if(qtd===i.quantidade) v.itens_venda=v.itens_venda.filter(x=>x!==i); else i.quantidade-=qtd;
+    v.total=Math.round((Number(v.total)-valor)*100)/100;
+    abrirDetalheVenda(v);
+  }
+  carregarProdutos(); carregarVendas();
+  if(fichaId) abrirFicha(fichaId);
+  if(!$('[data-tela="fiado"]').hidden) carregarFiado();
+});
 $("#dCancelar").onclick=async()=>{
   const v=vendaAberta; if(!v) return;
   let msg=`Cancelar a venda #${v.id} de ${reais(v.total)}?\n\nAs peças voltam pro estoque e o valor sai do financeiro. Não tem como desfazer.`;
@@ -466,7 +497,7 @@ async function abrirFicha(id){
   $("#cHist").innerHTML=`<p class="vazio">Carregando...</p>`;
   const [cs, vs, ps]=await Promise.all([
     carregarClientes().then(()=>null).catch(e=>e),
-    sb.from("vendas").select("id,data,total,forma_pagamento,observacao,cliente_id,clientes(nome,telefone),itens_venda(produto_nome,cor,tamanho,quantidade,preco_unitario,custo_unitario)").eq("cliente_id",id).order("data",{ascending:false}),
+    sb.from("vendas").select("id,data,total,forma_pagamento,observacao,cliente_id,clientes(nome,telefone),itens_venda(id,produto_nome,cor,tamanho,quantidade,preco_unitario,custo_unitario)").eq("cliente_id",id).order("data",{ascending:false}),
     sb.from("pagamentos").select("*").eq("cliente_id",id).order("data",{ascending:false})
   ]);
   if(fichaId!==id) return;
