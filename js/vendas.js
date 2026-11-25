@@ -490,7 +490,7 @@ $("#fLista").addEventListener("click",e=>{ const b=e.target.closest("[data-cli]"
 $("#novaCliente").onclick=()=>abrirCadastroCliente(null, c=>{ carregarFiado(); abrirFicha(c.id); });
 
 /* ---------- ficha do cliente ---------- */
-let fichaId=null, fichaCli=null, fichaVendas=[];
+let fichaId=null, fichaCli=null, fichaVendas=[], fichaEventos=[];
 async function abrirFicha(id){
   fichaId=id;
   $("#telaCliente").hidden=false; document.body.style.overflow="hidden";
@@ -532,12 +532,14 @@ async function abrirFicha(id){
     ...vs.data.map(v=>({tipo:"venda",data:v.data,v})),
     ...ps.data.map(p=>({tipo:"pag",data:p.data,p}))
   ].sort((a,b)=>new Date(b.data)-new Date(a.data));
-  /* quanto ela ficou devendo logo depois de cada pagamento: parte do saldo de hoje e volta no tempo */
-  const saldoDepois=new Map(); let corrente=Number(c.saldo);
-  hist.forEach(h=>{
-    if(h.tipo==="pag"){ saldoDepois.set(h.p.id, Math.round(corrente*100)/100); corrente+=Number(h.p.valor); }
-    else if(h.v.forma_pagamento==="fiado") corrente-=Number(h.v.total);
+  /* lançamentos que mexem no que ela deve, do mais antigo pro mais novo (vão pro recibo) */
+  fichaEventos=[];
+  if(antes>0) fichaEventos.push({ rot:"Compras antigas", valor:antes, t:-Infinity });
+  [...hist].reverse().forEach(h=>{
+    if(h.tipo==="pag") fichaEventos.push({ rot:`${diaCurto(h.p.data)} pagou`, valor:-Number(h.p.valor), pid:h.p.id, t:+new Date(h.p.data) });
+    else if(h.v.forma_pagamento==="fiado") fichaEventos.push({ rot:`${diaCurto(h.v.data)} compra`, valor:Number(h.v.total), t:+new Date(h.v.data) });
   });
+  const eventosAte = pid => fichaEventos.slice(0, fichaEventos.findIndex(e=>e.pid===pid)+1);
   const linhaAntes = antes>0 ? `
     <button class="hist-item" data-anterior>
       <span class="hist-ico fiado">−</span>
@@ -554,7 +556,7 @@ async function abrirFicha(id){
     <div class="hist-item">
       <span class="hist-ico pago">+</span>
       <div><b>Pagou</b><small>${diaCurto(h.p.data)} · ${FORMAS[h.p.forma]}${h.p.observacao?` · ${esc(h.p.observacao)}`:""}</small>
-        <span class="acoes-pag"><button class="link desfazer" data-hp="${h.p.id}" data-valor="${h.p.valor}">Desfazer</button>${w?`<a class="link desfazer" href="${linkRecibo(w,c,h.p.valor,h.p.forma,h.p.data,saldoDepois.get(h.p.id))}" target="_blank" rel="noopener">Mandar recibo</a>`:""}</span></div>
+        <span class="acoes-pag"><button class="link desfazer" data-hp="${h.p.id}" data-valor="${h.p.valor}">Desfazer</button>${w?`<a class="link desfazer" href="${linkRecibo(w,c,h.p.valor,h.p.forma,h.p.data,eventosAte(h.p.id))}" target="_blank" rel="noopener">Mandar recibo</a>`:""}</span></div>
       <b class="dir pago">${reais(h.p.valor)}</b>
     </div>`).join("") + linhaAntes : `<p class="vazio">Nenhuma compra ou pagamento ainda.</p>`;
 }
@@ -574,17 +576,24 @@ $("#cHist").addEventListener("click",async e=>{
   if(hv) abrirDetalheVenda(fichaVendas.find(v=>v.id==hv.dataset.hv));
 });
 
-/* ---------- recibo do pagamento pro WhatsApp da cliente ----------
-   Mostra quanto ela pagou e quanto falta agora (compras, já pago e falta, igual à cobrança). */
+/* ---------- recibo do pagamento pro WhatsApp da cliente ---------- */
 const FORMA_RECIBO = { pix:"no Pix", dinheiro:"em dinheiro", debito:"no cartão de débito", credito:"no cartão de crédito" };
-/* mostra o abatimento: quanto faltava, quanto pagou e quanto ficou
-   (o "Já pago" somado confundia: a cliente achava que tinha pago tudo aquilo de uma vez) */
-function linkRecibo(w, c, valor, forma, data, saldoDepois){
+/* recibo com o histórico da conta: compras antigas, compras no fiado e pagamentos até esse
+   pagamento, e quanto ficou. Mais de 8 lançamentos: os mais velhos viram uma linha "Restante anterior" */
+const MAX_LINHAS_RECIBO = 8;
+function linkRecibo(w, c, valor, forma, data, eventos){
   const pagou=[`Recebi seu pagamento de ${reais(valor)}`, FORMA_RECIBO[forma], `em ${diaCurto(data)}.`].filter(Boolean).join(" ");
-  const antes=Math.round((Number(saldoDepois)+Number(valor))*100)/100;
+  const soma = ev => Math.round(ev.reduce((t,e)=>t+e.valor,0)*100)/100;
+  const linhas=[]; let mostrar=eventos;
+  if(eventos.length>MAX_LINHAS_RECIBO){
+    linhas.push(`Restante anterior: ${reais(soma(eventos.slice(0,-MAX_LINHAS_RECIBO)))}`);
+    mostrar=eventos.slice(-MAX_LINHAS_RECIBO);
+  }
+  mostrar.forEach(e=>linhas.push(e.rot==="Compras antigas" ? `Compras antigas: ${reais(e.valor)}` : `${e.rot}: ${e.valor<0?"−":"+"} ${reais(Math.abs(e.valor))}`));
+  const resto=soma(eventos);
   const msg=`Oi, ${primeiroNome(c.nome)}! 😊\n\n${pagou} Obrigada!\n\n`
-    + `Restante anterior: ${reais(antes)}\nPagamento: − ${reais(valor)}\n`
-    + (saldoDepois>0.009 ? `*Restante: ${reais(saldoDepois)}*` : `*Tudo pago na NC Style Fitness!* 🎉`)
+    + `Seu histórico:\n${linhas.join("\n")}\n`
+    + (resto>0.009 ? `*Restante: ${reais(resto)}*` : `*Tudo pago na NC Style Fitness!* 🎉`)
     + `\n\nMuito obrigada, precisando estou sempre aqui para lhe atender 🤝.`;
   return `https://wa.me/${w}?text=${encodeURIComponent(msg)}`;
 }
@@ -625,7 +634,7 @@ $("#rSalvar").onclick=async()=>{
     + (resto>0.009 ? `Ainda falta ${reais(resto)}.` : `${primeiroNome(c.nome)} quitou tudo! 🎉`)
     + (w ? "" : " Ela não tem WhatsApp cadastrado, então não dá pra mandar o recibo.");
   $("#rRecibo").hidden=!w;
-  if(w) $("#rRecibo").href=linkRecibo(w, c, valor, formaReceber, data, resto);
+  if(w) $("#rRecibo").href=linkRecibo(w, c, valor, formaReceber, data, [...fichaEventos, { rot:`${diaCurto(data)} pagou`, valor:-valor, t:+new Date(data) }].sort((a,b)=>a.t-b.t));
   $("#rForm").hidden=true; $("#rFeito").hidden=false;
   abrirFicha(c.id); carregarFiado();
 };
